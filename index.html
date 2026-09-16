@@ -21,10 +21,10 @@
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --c-fondo: #0f172a;
-                --c-panel: #1e293b;
+                --c-fondo: #0a0e27;
+                --c-panel: #151d3a;
                 --c-texto: #f1f5f9;
-                --c-borde: #334155;
+                --c-borde: #2a3555;
                 --c-base: #86a8c2;
                 --c-acento: #f87171;
                 --c-positivo: #34d399;
@@ -35,10 +35,10 @@
         }
 
         [data-theme="dark"] {
-            --c-fondo: #0f172a;
-            --c-panel: #1e293b;
+            --c-fondo: #0a0e27;
+            --c-panel: #151d3a;
             --c-texto: #f1f5f9;
-            --c-borde: #334155;
+            --c-borde: #2a3555;
         }
 
         [data-theme="light"] {
@@ -693,6 +693,21 @@
         }
 
         // FUNCIONES AUXILIARES
+        function obtenerSemanaISO(fecha) {
+            const d = new Date(fecha);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+
+        function obtenerDiaSemana(fecha) {
+            const d = new Date(fecha);
+            let dia = d.getDay();
+            return dia === 0 ? 7 : dia;
+        }
+
         function sumar(lista, clave) {
             return lista.reduce((t, item) => {
                 const v = item[clave];
@@ -888,8 +903,7 @@
         function grafico2_tendencia(estandar) {
             const semanaMap = new Map();
             datosFiltrados.forEach(d => {
-                const fecha = new Date(d.fecha);
-                const sem = Math.ceil((fecha.getDate() - fecha.getDay() + 4) / 7);
+                const sem = obtenerSemanaISO(d.fecha);
                 if (!semanaMap.has(sem)) semanaMap.set(sem, []);
                 semanaMap.get(sem).push(d);
             });
@@ -1212,10 +1226,16 @@
                 font: { color: 'var(--c-texto)', family: 'system-ui', size: 12 },
                 xaxis: { title: 'Velocidad neta (cerdos/hora)', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
                 yaxis: { title: 'Tasa de defecto (%)', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                shapes: [{
-                    type: 'line', yref: 'paper', y0: 0, y1: 1, x0: estandar, x1: estandar,
-                    line: { color: '#b23b26', width: 1.6, dash: 'dash' }
-                }],
+                shapes: [
+                    {
+                        type: 'line', yref: 'paper', y0: 0, y1: 1, x0: estandar, x1: estandar,
+                        line: { color: '#b23b26', width: 1.6, dash: 'dash' }
+                    },
+                    {
+                        type: 'line', xref: 'paper', x0: 0, x1: 1, y0: medianaTasa, y1: medianaTasa,
+                        line: { color: '#74808a', width: 1.8, dash: 'dot' }
+                    }
+                ],
                 legend: { x: 0.01, y: 0.99 },
                 hovermode: 'closest',
                 height: 500
@@ -1225,15 +1245,13 @@
         }
 
         function grafico7_heatmap(estandar) {
-            const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
             const heatmapData = {};
             datosFiltrados.forEach(d => {
-                const fecha = new Date(d.fecha);
-                const dia = fecha.getDate();
-                const mes = fecha.getMonth() + 1;
-                const semana = Math.ceil((dia - fecha.getDay() + 4) / 7);
-                const key = `${mes}-${semana}-${dia}`;
+                const semana = obtenerSemanaISO(d.fecha);
+                const diaSemana = obtenerDiaSemana(d.fecha);
+                const key = `${semana}-${diaSemana}`;
                 if (!heatmapData[key]) heatmapData[key] = [];
                 heatmapData[key].push(d.velocidadNeta);
             });
@@ -1242,16 +1260,16 @@
             const diasSet = new Set();
             const valoresHeatmap = [];
 
-            Object.entries(heatmapData).sort((a, b) => a[0].localeCompare(b[0])).forEach(([key, velocs]) => {
-                const [mes, sem, dia] = key.split('-');
-                semanas.add(parseInt(sem));
-                diasSet.add(parseInt(dia));
+            Object.entries(heatmapData).forEach(([key, velocs]) => {
+                const [sem, dia] = key.split('-').map(Number);
+                semanas.add(sem);
+                diasSet.add(dia);
                 const promedio_val = promedio(velocs);
-                valoresHeatmap.push({ semana: parseInt(sem), dia: parseInt(dia), valor: promedio_val });
+                valoresHeatmap.push({ semana: sem, dia: dia, valor: promedio_val });
             });
 
             const semanasOrd = Array.from(semanas).sort((a, b) => a - b);
-            const diasOrd = Array.from(diasSet).sort((a, b) => a - b);
+            const diasOrd = [1, 2, 3, 4, 5, 6, 7];
 
             const z = semanasOrd.map(s =>
                 diasOrd.map(d => {
@@ -1262,7 +1280,7 @@
 
             const trace = {
                 z: z,
-                x: diasOrd.map(d => 'Día ' + d),
+                x: DIAS_SEMANA,
                 y: semanasOrd.map(s => 'Semana ' + s),
                 type: 'heatmap',
                 colorscale: [
@@ -1281,13 +1299,13 @@
 
             const layout = {
                 title: false,
-                margin: { l: 92, r: 26, t: 30, b: 62 },
+                margin: { l: 92, r: 80, t: 30, b: 62 },
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'var(--c-texto)', family: 'system-ui', size: 12 },
                 xaxis: { side: 'bottom' },
                 yaxis: { autorange: 'reversed' },
-                height: 400
+                height: 500
             };
 
             Plotly.newPlot('grafico7', [trace], layout, { responsive: true, displayModeBar: false });
