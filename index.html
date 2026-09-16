@@ -1006,8 +1006,13 @@ function actualizar() {
 
 async function cargarDatos() {
     try {
-        sel("subtitulo").textContent = "Cargando datos desde GitHub...";
-        const response = await fetch("https://raw.githubusercontent.com/Distrogger/faenamiento/main/datos.csv");
+        sel("subtitulo").textContent = "Cargando datos...";
+        let urlDatos = "datos.csv";
+
+        // Intenta cargar del archivo local primero, luego desde GitHub
+        let response = await fetch(urlDatos).catch(() =>
+            fetch("https://raw.githubusercontent.com/Distrogger/faenamiento/main/datos.csv")
+        );
         if (!response.ok) throw new Error("HTTP " + response.status);
         const text = await response.text();
         const lineas = text.split('\n');
@@ -1091,7 +1096,7 @@ async function cargarDatos() {
         });
 
         sel("subtitulo").textContent = "Período " + estado.meta.fechaMinima + " al " + estado.meta.fechaMaxima + " · " + estado.meta.totalTurnos + " turnos";
-        sel("pie").textContent = "Datos en vivo desde GitHub · Indicadores recalculados en tiempo real · Estándar nominal " + numero(ESTANDAR_NOMINAL, 0) + " cerdos/hora";
+        sel("pie").textContent = "Datos cargados · Indicadores recalculados en tiempo real · Estándar nominal " + numero(ESTANDAR_NOMINAL, 0) + " cerdos/hora";
 
         ["fechaInicio", "fechaFin", "filtroLinea", "filtroCategoria"].forEach(id => sel(id).addEventListener("change", actualizar));
         sel("estandar").addEventListener("input", actualizar);
