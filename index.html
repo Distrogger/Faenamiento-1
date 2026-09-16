@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="es-EC">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Faenamiento Porcino v41</title>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.35.0/dist/plotly.min.js"></script>
+    <style>
+        :root {
+            --c-fondo: #ffffff;
+            --c-panel: #f8f9fa;
+            --c-texto: #1f2937;
+            --c-borde: #e5e7eb;
+            --c-base: #6366f1;
+            --c-acento: #ef4444;
+            --c-positivo: #10b981;
+            --c-neutro: #9ca3af;
+            --c-alerta-amarillo: #f59e0b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --c-fondo: #0f172a;
+                --c-panel: #1e293b;
+                --c-texto: #f1f5f9;
+                --c-borde: #334155;
+                --c-base: #818cf8;
+                --c-acento: #f87171;
+                --c-positivo: #34d399;
+                --c-neutro: #94a3b8;
+                --c-alerta-amarillo: #fbbf24;
+            }
+        }
+
+        [data-theme="dark"] {
+            --c-fondo: #0f172a;
+            --c-panel: #1e293b;
+            --c-texto: #f1f5f9;
+            --c-borde: #334155;
+        }
+
+        [data-theme="light"] {
+            --c-fondo: #ffffff;
+            --c-panel: #f8f9fa;
+            --c-texto: #1f2937;
+            --c-borde: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--c-fondo);
+            color: var(--c-texto);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .header {
+            background-color: var(--c-panel);
+            border-bottom: 1px solid var(--c-borde);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--c-base);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.8;
+        }
+
+        .error-banner {
+            background-color: var(--c-acento);
+            color: white;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 0.375rem;
+            display: none;
+        }
+
+        .error-banner.show {
+            display: block;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem 2rem;
+        }
+
+        .filtros {
+            background-color: var(--c-panel);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--c-borde);
+        }
+
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filtro-grupo {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filtro-grupo label {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--c-texto);
+        }
+
+        .filtro-grupo input[type="date"],
+        .filtro-grupo input[type="number"],
+        .filtro-grupo select {
+            padding: 0.5rem;
+            border: 1px solid var(--c-borde);
+            border-radius: 0.375rem;
+            background-color: var(--c-fondo);
+            color: var(--c-texto);
+            font-size: 0.875rem;
+        }
+
+        .filtro-grupo input[type="range"] {
+            width: 100%;
+        }
+
+        .filtro-grupo .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--c-neutro);
+            margin-top: 0.25rem;
+        }
+
+        .articulos-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .chip {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--c-borde);
+            border-radius: 1rem;
+            cursor: pointer;
+            background-color: var(--c-fondo);
+            color: var(--c-texto);
+            font-size: 0.813rem;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background-color: var(--c-base);
+            color: white;
+            border-color: var(--c-base);
+        }
+
+        .chip:hover {
+            border-color: var(--c-base);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background-color: var(--c-panel);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--c-base);
+            border: 1px solid var(--c-borde);
+            border-left: 4px solid var(--c-base);
+        }
+
+        .kpi-card.status-bien {
+            border-left-color: var(--c-positivo);
+        }
+
+        .kpi-card.status-alerta {
+            border-left-color: var(--c-alerta-amarillo);
+        }
+
+        .kpi-card.status-mal {
+            border-left-color: var(--c-acento);
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            color: var(--c-neutro);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-valor {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-meta {
+            font-size: 0.75rem;
+            color: var(--c-neutro);
+        }
+
+        .graficos {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .grafico-container {
+            background-color: var(--c-panel);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--c-borde);
+        }
+
+        .grafico-container h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .plotly-chart {
+            width: 100%;
+            height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--c-neutro);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid var(--c-borde);
+            border-top-color: var(--c-base);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .filtros-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .plotly-chart {
+                height: 300px;
+            }
+        }
+
+        .sin-datos {
+            text-align: center;
+            padding: 2rem;
+            color: var(--c-neutro);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📊 Dashboard Faenamiento Porcino</h1>
+            <p style="font-size: 0.875rem; color: var(--c-neutro); margin-top: 0.25rem;">Monitoreo en vivo • v41 • Datos desde CSV</p>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+        </div>
+    </div>
+
+    <div id="errorBanner" class="error-banner"></div>
+
+    <div class="container">
+        <!-- FILTROS -->
+        <div class="filtros">
+            <h3 style="margin-bottom: 1rem;">Filtros</h3>
+            <div class="filtros-grid">
+                <div class="filtro-grupo">
+                    <label>Fecha desde</label>
+                    <input type="date" id="filtroFechaDesde">
+                </div>
+                <div class="filtro-grupo">
+                    <label>Fecha hasta</label>
+                    <input type="date" id="filtroFechaHasta">
+                </div>
+                <div class="filtro-grupo">
+                    <label>Línea de producción</label>
+                    <select id="filtroLinea">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label>Dotación (personal)</label>
+                    <input type="range" id="filtroDotacionMin" min="1" max="50">
+                    <input type="range" id="filtroDotacionMax" min="1" max="50">
+                    <div class="range-labels">
+                        <span id="dotacionMinLabel">1</span>
+                        <span id="dotacionMaxLabel">50</span>
+                    </div>
+                </div>
+                <div class="filtro-grupo">
+                    <label>Estándar (cerdos/hora)</label>
+                    <input type="number" id="filtroEstandar" value="40" min="10" max="100">
+                </div>
+            </div>
+            <div class="filtro-grupo">
+                <label>Artículos</label>
+                <div class="articulos-chips" id="articulosChips"></div>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div id="kpisContainer" class="kpi-grid"></div>
+
+        <!-- GRÁFICOS -->
+        <div class="graficos">
+            <div class="grafico-container">
+                <h3>1. Cascada de Pérdidas</h3>
+                <div id="grafico1" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>2. Tendencia Semanal (Velocidad vs Dotación)</h3>
+                <div id="grafico2" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>3. Carta de Control Shewhart</h3>
+                <div id="grafico3" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>4. Pareto de Paradas</h3>
+                <div id="grafico4" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>5. Dotación vs Velocidad (Box Plots)</h3>
+                <div id="grafico5" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>6. Velocidad vs Defectos</h3>
+                <div id="grafico6" class="plotly-chart"></div>
+            </div>
+            <div class="grafico-container">
+                <h3>7. Mapa de Calor (Semana × Día)</h3>
+                <div id="grafico7" class="plotly-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const CSV_FILE = 'datos.csv';
+
+        // Estado global
+        let datosCompletos = [];
+        let datosFiltrados = [];
+        let metadata = {};
+
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            cargarDatos();
+            setupEventListeners();
+        });
+
+        // TEMA DARK/LIGHT
+        function initializeTheme() {
+            const theme = localStorage.getItem('theme') || 'auto';
+            applyTheme(theme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'auto') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        // PARSEAR CSV (robusto para saltos de línea y encabezados multilinea)
+        function parsearCSV(csv) {
+            const filas = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < csv.length; i++) {
+                const char = csv[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                    current += char;
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (current.trim()) filas.push(current);
+                    current = '';
+                    if (csv[i] === '\r' && csv[i + 1] === '\n') i++; // Skip CRLF
+                } else {
+                    current += char;
+                }
+            }
+            if (current.trim()) filas.push(current);
+
+            if (filas.length < 2) return [];
+
+            // Parsear headers
+            const headerFila = filas[0];
+            const headers = [];
+            let col = '';
+            let inQuotes2 = false;
+
+            for (let i = 0; i < headerFila.length; i++) {
+                const char = headerFila[i];
+                if (char === '"') {
+                    inQuotes2 = !inQuotes2;
+                } else if (char === ',' && !inQuotes2) {
+                    headers.push(col.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').replace(/\s+/g, ' '));
+                    col = '';
+                } else {
+                    col += char;
+                }
+            }
+            if (col) headers.push(col.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').replace(/\s+/g, ' '));
+
+            // Parsear datos
+            const datos = [];
+            for (let i = 1; i < filas.length; i++) {
+                const fila = filas[i];
+                const row = {};
+                let field = '';
+                let colIdx = 0;
+                let inQuotes3 = false;
+
+                for (let j = 0; j < fila.length; j++) {
+                    const char = fila[j];
+                    if (char === '"') {
+                        inQuotes3 = !inQuotes3;
+                    } else if (char === ',' && !inQuotes3) {
+                        row[headers[colIdx]] = field.trim().replace(/^"|"$/g, '');
+                        field = '';
+                        colIdx++;
+                    } else {
+                        field += char;
+                    }
+                }
+                if (colIdx < headers.length) {
+                    row[headers[colIdx]] = field.trim().replace(/^"|"$/g, '');
+                }
+
+                if (Object.keys(row).length > 0) datos.push(row);
+            }
+
+            return datos;
+        }
+
+        // CARGA DE DATOS
+        async function cargarDatos() {
+            mostrarError('');
+            const container = document.querySelector('.container');
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.innerHTML = '<div class="spinner"></div><p>Cargando datos desde CSV...</p>';
+            container.insertBefore(loading, container.firstChild);
+
+            try {
+                const response = await fetch(CSV_FILE + '?v=' + Date.now(), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status} - Verifica que datos.csv exista en la carpeta`);
+
+                const csv = await response.text();
+                if (!csv) throw new Error('Archivo CSV vacío');
+
+                const datos = parsearCSV(csv);
+                if (datos.length === 0) throw new Error('Sin datos en el CSV');
+
+                console.log('✅ Filas parseadas:', datos.length);
+                console.log('Primer registro:', datos[0]);
+                console.log('Campos disponibles:', Object.keys(datos[0]));
+
+                datosCompletos = mapearDatos(datos);
+                console.log('Registros después de mapear:', datosCompletos.length);
+                console.log('Primer registro mapeado:', datosCompletos[0]);
+
+                const antes = datosCompletos.length;
+                datosCompletos = datosCompletos.filter(d => d.cerdos > 0 && d.horasProd > 0);
+                console.log(`Filtrados: ${antes} → ${datosCompletos.length} (cerdos > 0 AND horasProd > 0)`);
+
+                if (datosCompletos.length === 0) throw new Error('Sin datos válidos después de filtrar');
+
+                inicializarMetadata();
+                inicializarFiltros();
+                actualizar();
+
+                loading.remove();
+            } catch (err) {
+                mostrarError(`❌ Error cargando datos: ${err.message}`);
+                loading.remove();
+                console.error(err);
+            }
+        }
+
+        // MAPEO FLEXIBLE DE CAMPOS
+        function mapearDatos(json) {
+            // Función helper para buscar campo flexible
+            const getField = (row, ...keys) => {
+                for (const key of keys) {
+                    if (row[key] !== undefined && row[key] !== null) return row[key];
+                }
+                return '';
+            };
+
+            const parseNumber = (val) => {
+                if (!val) return 0;
+                return Number(val.toString().replace(/,/g, '.').replace(/%/g, '')) || 0;
+            };
+
+            return json.map(row => {
+                const fecha = convertirFecha(getField(row, 'FECHA DE PROCESO', 'FECHA', 'fecha'));
+                const linea = getField(row, 'LÍNEA PRODUCCION', 'LINEA PRODUCCION', 'LINEA', 'linea');
+                const articulo = getField(row, 'DESCRIPCIÓN ARTÍCULO', 'DESCRIPCION ARTICULO', 'ARTICULO', 'articulo').trim();
+                const personal = parseNumber(getField(row, 'CANTIDAD DE PERSONAL', 'PERSONAL', 'personal'));
+                const cerdos = parseNumber(getField(row, 'CANTIDAD DE CERDOS', 'CERDOS', 'cerdos'));
+                const defectos = parseNumber(getField(row, 'DEFECTOS PROCESO', 'UNIDADES CON DEFECTOS PROCESO', 'defectos'));
+                const buenos = cerdos > 0 ? cerdos - defectos : 0;
+                const kg = parseNumber(getField(row, 'KILOGRAMOS EN PIE', 'KG_PROCESADO', 'kilogramos'));
+                const horasProd = parseNumber(getField(row, 'HORAS PRODUCTIVAS', 'HORAS_PRODUCTIVAS', 'horas_productivas'));
+                const horasProg = parseNumber(getField(row, 'HORAS PROGRAMADAS', 'HORAS_PROGRAMADAS', 'horas_programadas'));
+                const parasNoPlan = parseNumber(getField(row, 'HORAS DE PARAS NO PLANIFICADAS', 'HORAS_PARAS_NOPLAN', 'paras_noplan'));
+                const parasPlan = parseNumber(getField(row, 'HORAS DE PARAS PLANIFICADAS', 'HORAS_PARAS_PLAN', 'paras_plan'));
+                const motivos = getField(row, 'MOTIVOS DE PARADAS', 'MOTIVOS', 'motivos').split(/[,;\/]/).filter(m => m.trim());
+
+                return {
+                    fecha, linea, articulo, personal, cerdos, defectos, buenos, kg,
+                    horasProd, horasProg, parasNoPlan, parasPlan, motivos,
+                    velocidadNeta: horasProd > 0 ? cerdos / horasProd : 0,
+                    velocidadBruta: horasProg > 0 ? cerdos / horasProg : 0,
+                    porcDefectos: cerdos > 0 ? (defectos / cerdos) * 100 : 0,
+                    pesoPromedio: cerdos > 0 ? kg / cerdos : 0,
+                    kiloshora: horasProd > 0 ? kg / horasProd : 0
+                };
+            });
+        }
+
+        // CONVERTIR FECHA
+        function convertirFecha(fechaStr) {
+            if (!fechaStr) return new Date().toISOString().split('T')[0];
+            try {
+                const partes = fechaStr.split('/');
+                if (partes.length === 3) {
+                    const [dia, mes, anio] = partes.map(p => parseInt(p));
+                    return new Date(anio, mes - 1, dia).toISOString().split('T')[0];
+                }
+            } catch(e) {}
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // METADATA
+        function inicializarMetadata() {
+            const fechas = datosCompletos.map(d => new Date(d.fecha)).filter(f => !isNaN(f));
+            metadata.fechaMin = new Date(Math.min(...fechas)).toISOString().split('T')[0];
+            metadata.fechaMax = new Date(Math.max(...fechas)).toISOString().split('T')[0];
+            metadata.lineas = [...new Set(datosCompletos.map(d => d.linea).filter(Boolean))].sort();
+            metadata.articulos = [...new Set(datosCompletos.map(d => d.articulo).filter(Boolean))].sort();
+            metadata.personalMin = Math.min(...datosCompletos.map(d => d.personal));
+            metadata.personalMax = Math.max(...datosCompletos.map(d => d.personal));
+        }
+
+        // INICIALIZAR FILTROS
+        function inicializarFiltros() {
+            document.getElementById('filtroFechaDesde').value = metadata.fechaMin;
+            document.getElementById('filtroFechaDesde').min = metadata.fechaMin;
+            document.getElementById('filtroFechaDesde').max = metadata.fechaMax;
+
+            document.getElementById('filtroFechaHasta').value = metadata.fechaMax;
+            document.getElementById('filtroFechaHasta').min = metadata.fechaMin;
+            document.getElementById('filtroFechaHasta').max = metadata.fechaMax;
+
+            const selectLinea = document.getElementById('filtroLinea');
+            metadata.lineas.forEach(linea => {
+                const option = document.createElement('option');
+                option.value = linea;
+                option.textContent = linea;
+                selectLinea.appendChild(option);
+            });
+
+            document.getElementById('filtroDotacionMin').value = metadata.personalMin;
+            document.getElementById('filtroDotacionMax').value = metadata.personalMax;
+            document.getElementById('filtroDotacionMin').max = metadata.personalMax;
+            document.getElementById('filtroDotacionMax').max = metadata.personalMax;
+            updateRangeLabels();
+
+            const articulosChips = document.getElementById('articulosChips');
+            metadata.articulos.forEach(articulo => {
+                const chip = document.createElement('div');
+                chip.className = 'chip active';
+                chip.textContent = articulo || '(sin especificar)';
+                chip.dataset.articulo = articulo;
+                chip.onclick = () => toggleChip(chip);
+                articulosChips.appendChild(chip);
+            });
+        }
+
+        // EVENT LISTENERS
+        function setupEventListeners() {
+            document.getElementById('filtroFechaDesde').addEventListener('change', actualizar);
+            document.getElementById('filtroFechaHasta').addEventListener('change', actualizar);
+            document.getElementById('filtroLinea').addEventListener('change', actualizar);
+            document.getElementById('filtroDotacionMin').addEventListener('input', () => {
+                updateRangeLabels();
+                actualizar();
+            });
+            document.getElementById('filtroDotacionMax').addEventListener('input', () => {
+                updateRangeLabels();
+                actualizar();
+            });
+            document.getElementById('filtroEstandar').addEventListener('change', actualizar);
+        }
+
+        function updateRangeLabels() {
+            document.getElementById('dotacionMinLabel').textContent = document.getElementById('filtroDotacionMin').value;
+            document.getElementById('dotacionMaxLabel').textContent = document.getElementById('filtroDotacionMax').value;
+        }
+
+        function toggleChip(chip) {
+            chip.classList.toggle('active');
+            actualizar();
+        }
+
+        // ACTUALIZAR
+        function actualizar() {
+            aplicarFiltros();
+            renderKPIs();
+            renderGraficos();
+        }
+
+        function aplicarFiltros() {
+            const fechaDesde = document.getElementById('filtroFechaDesde').value;
+            const fechaHasta = document.getElementById('filtroFechaHasta').value;
+            const linea = document.getElementById('filtroLinea').value;
+            const dotMin = Number(document.getElementById('filtroDotacionMin').value);
+            const dotMax = Number(document.getElementById('filtroDotacionMax').value);
+            const articulosActivos = Array.from(document.querySelectorAll('.chip.active')).map(c => c.dataset.articulo);
+
+            datosFiltrados = datosCompletos.filter(d => {
+                const fOk = d.fecha >= fechaDesde && d.fecha <= fechaHasta;
+                const lOk = !linea || d.linea === linea;
+                const pOk = d.personal >= dotMin && d.personal <= dotMax;
+                const aOk = articulosActivos.includes(d.articulo);
+                return fOk && lOk && pOk && aOk;
+            });
+
+            if (datosFiltrados.length === 0) {
+                mostrarError('⚠️ Sin datos en este filtro');
+            } else {
+                mostrarError('');
+            }
+        }
+
+        // KPIs
+        function renderKPIs() {
+            const estandar = Number(document.getElementById('filtroEstandar').value) || 40;
+
+            if (datosFiltrados.length === 0) {
+                document.getElementById('kpisContainer').innerHTML = '<div class="sin-datos">Sin datos para calcular KPIs</div>';
+                return;
+            }
+
+            const kpis = calcularKPIs(estandar);
+            const container = document.getElementById('kpisContainer');
+            container.innerHTML = '';
+
+            const kpiDefs = [
+                { key: 'totalCerdos', label: 'Cerdos procesados', formato: 'numero' },
+                { key: 'velocidadNeta', label: 'Velocidad neta', formato: 'decimal', unidad: 'cer/h' },
+                { key: 'velocidadBruta', label: 'Velocidad bruta', formato: 'decimal', unidad: 'cer/h' },
+                { key: 'cumplimiento', label: 'Cumplimiento estándar', formato: 'porcentaje', meta: '100%' },
+                { key: 'disponibilidad', label: 'Disponibilidad', formato: 'porcentaje', meta: '100%' },
+                { key: 'rendimiento', label: 'Rendimiento de cerdos', formato: 'porcentaje', meta: '>80%' },
+                { key: 'pesoPromedio', label: 'Peso promedio', formato: 'decimal', unidad: 'kg/cer' },
+                { key: 'calidadProceso', label: 'Calidad de proceso', formato: 'porcentaje', meta: '>97%' },
+                { key: 'oee', label: 'OEE', formato: 'porcentaje', meta: 'Máximo' },
+                { key: 'kilosHora', label: 'Kilos por hora', formato: 'decimal', unidad: 'kg/h' },
+                { key: 'kilohh', label: 'Kilo h/h', formato: 'decimal', unidad: 'kg/h' },
+                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'decimal', unidad: 'pers' }
+            ];
+
+            kpiDefs.forEach(def => {
+                const valor = kpis[def.key];
+                let valStr = '';
+                if (valor === null || valor === undefined) valStr = 'sin dato';
+                else if (def.formato === 'numero') valStr = formatoNumero(valor, 0);
+                else if (def.formato === 'decimal') valStr = formatoNumero(valor, 1);
+                else if (def.formato === 'porcentaje') valStr = formatoPorcentaje(valor);
+
+                const unidad = def.unidad ? ` ${def.unidad}` : '';
+                const status = obtenerStatus(def.key, valor, estandar);
+
+                const card = document.createElement('div');
+                card.className = `kpi-card status-${status}`;
+                card.innerHTML = `
+                    <div class="kpi-label">${def.label}</div>
+                    <div class="kpi-valor">${valStr}${unidad ? '<span style="font-size: 0.6em; margin-left: 0.5rem;">' + unidad + '</span>' : ''}</div>
+                    ${def.meta ? `<div class="kpi-meta">Meta: ${def.meta}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function calcularKPIs(estandar) {
+            if (datosFiltrados.length === 0) return {};
+
+            const totalCerdos = datosFiltrados.reduce((s, d) => s + d.cerdos, 0);
+            const totalHorasProd = datosFiltrados.reduce((s, d) => s + d.horasProd, 0);
+            const totalHorasProg = datosFiltrados.reduce((s, d) => s + d.horasProg, 0);
+            const totalKg = datosFiltrados.reduce((s, d) => s + d.kg, 0);
+            const totalBuenos = datosFiltrados.reduce((s, d) => s + d.buenos, 0);
+            const totalDefectos = datosFiltrados.reduce((s, d) => s + d.defectos, 0);
+            const totalPersonal = datosFiltrados.reduce((s, d) => s + d.personal * d.horasProd, 0);
+
+            const velocidadNeta = totalHorasProd > 0 ? totalCerdos / totalHorasProd : null;
+            const velocidadBruta = totalHorasProg > 0 ? totalCerdos / totalHorasProg : null;
+            const cumplimiento = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : null;
+            const disponibilidad = totalHorasProg > 0 ? Math.min((totalHorasProd / totalHorasProg) * 100, 100) : null;
+            const rendimiento = totalCerdos > 0 ? (totalBuenos / totalCerdos) * 100 : null;
+            const pesoPromedio = totalCerdos > 0 ? totalKg / totalCerdos : null;
+            const calidadProceso = totalCerdos > 0 ? ((totalCerdos - totalDefectos) / totalCerdos) * 100 : null;
+
+            const ritmo = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : 0;
+            const oee = disponibilidad && calidadProceso ?
+                (Math.min(disponibilidad, 100) / 100) * (Math.min(ritmo, 100) / 100) * (Math.min(calidadProceso, 100) / 100) * 100 : 0;
+
+            const kilosHora = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
+            const kilohh = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
+            const dotacionPromedio = totalHorasProd > 0 ? totalPersonal / totalHorasProd : null;
+
+            return {
+                totalCerdos, velocidadNeta, velocidadBruta, cumplimiento, disponibilidad,
+                rendimiento, pesoPromedio, calidadProceso, oee, kilosHora, kilohh, dotacionPromedio
+            };
+        }
+
+        function obtenerStatus(key, valor, estandar) {
+            if (valor === null || valor === undefined) return 'neutro';
+
+            const umbrales = {
+                cumplimiento: { bien: 90, alerta: 70 },
+                disponibilidad: { bien: 90, alerta: 70 },
+                rendimiento: { bien: 90, alerta: 80 },
+                calidadProceso: { bien: 97, alerta: 90 },
+                oee: { bien: 70, alerta: 50 },
+                velocidadNeta: { bien: estandar, alerta: estandar * 0.8 },
+            };
+
+            const umbral = umbrales[key];
+            if (!umbral) return 'bien';
+
+            if (valor >= umbral.bien) return 'bien';
+            if (valor >= umbral.alerta) return 'alerta';
+            return 'mal';
+        }
+
+        // GRÁFICOS (Placeholder - mismo código de antes)
+        function renderGraficos() {
+            if (datosFiltrados.length === 0) {
+                ['grafico1', 'grafico2', 'grafico3', 'grafico4', 'grafico5', 'grafico6', 'grafico7'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--c-neutro);">Sin datos para graficar</div>';
+                });
+                return;
+            }
+
+            const estandar = Number(document.getElementById('filtroEstandar').value) || 40;
+            grafico1_cascada(estandar);
+            grafico2_tendencia(estandar);
+            grafico3_shewhart(estandar);
+            grafico4_pareto();
+            grafico5_boxplots(estandar);
+            grafico6_scatter(estandar);
+            grafico7_heatmap(estandar);
+        }
+
+        function grafico1_cascada(estandar) {
+            const totalCerdos = datosFiltrados.reduce((s, d) => s + d.cerdos, 0);
+            const totalHorasProg = datosFiltrados.reduce((s, d) => s + d.horasProg, 0);
+            const totalParasPlan = datosFiltrados.reduce((s, d) => s + d.parasPlan, 0);
+            const totalParasNoPlan = datosFiltrados.reduce((s, d) => s + d.parasNoPlan, 0);
+            const totalDefectos = datosFiltrados.reduce((s, d) => s + d.defectos, 0);
+
+            const potencial = totalHorasProg * estandar;
+            const perdidaPlan = Math.max(0, totalParasPlan * estandar);
+            const perdidaNoPlan = Math.max(0, totalParasNoPlan * estandar);
+            const perdidaRitmo = Math.max(0, potencial - perdidaPlan - perdidaNoPlan - (totalCerdos - totalDefectos));
+            const perdidaDefectos = totalDefectos;
+            const produccionBuena = totalCerdos - totalDefectos;
+
+            const trace = {
+                x: ['Potencial', 'Paradas plan', 'Paradas no plan', 'Pérdida ritmo', 'Defectos', 'Producción buena'],
+                y: [potencial, -perdidaPlan, -perdidaNoPlan, -perdidaRitmo, -perdidaDefectos, produccionBuena],
+                measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'total'],
+                type: 'waterfall',
+                increasing: { marker: { color: '#10b981' } },
+                decreasing: { marker: { color: '#ef4444' } },
+                totals: { marker: { color: '#6366f1' } }
+            };
+
+            const layout = {
+                title: false,
+                margin: { l: 60, r: 20, t: 20, b: 40 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui' },
+                yaxis: { showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+            };
+
+            Plotly.newPlot('grafico1', [trace], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico2_tendencia(estandar) {
+            const semanas = {};
+            datosFiltrados.forEach(d => {
+                const fecha = new Date(d.fecha);
+                const sem = `S${Math.ceil((fecha.getDate() - fecha.getDay() + 4) / 7)}`;
+                if (!semanas[sem]) semanas[sem] = [];
+                semanas[sem].push(d);
+            });
+
+            const semOrd = Object.keys(semanas).sort((a, b) => {
+                const numA = parseInt(a.substring(1));
+                const numB = parseInt(b.substring(1));
+                return numA - numB;
+            });
+
+            const velocidadesNetas = semOrd.map(s => {
+                const horas = semanas[s].reduce((sum, d) => sum + d.horasProd, 0);
+                const cerdos = semanas[s].reduce((sum, d) => sum + d.cerdos, 0);
+                return horas > 0 ? cerdos / horas : 0;
+            });
+
+            const traceVelNeta = {
+                x: semOrd, y: velocidadesNetas, type: 'scatter', mode: 'lines+markers',
+                name: 'Vel. neta', line: { color: '#2563eb', width: 3 }, marker: { size: 6 }
+            };
+
+            const traceEstandar = {
+                x: semOrd, y: Array(semOrd.length).fill(estandar), type: 'scatter', mode: 'lines',
+                name: 'Estándar', line: { color: '#ef4444', width: 2 }
+            };
+
+            const layout = {
+                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
+                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('grafico2', [traceVelNeta, traceEstandar], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico3_shewhart(estandar) {
+            const datos = datosFiltrados.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            const velNetas = datos.map(d => d.velocidadNeta);
+            const media = velNetas.reduce((s, v) => s + v, 0) / velNetas.length;
+
+            const rangos = [];
+            for (let i = 1; i < velNetas.length; i++) {
+                rangos.push(Math.abs(velNetas[i] - velNetas[i - 1]));
+            }
+            const rMedio = rangos.reduce((s, r) => s + r, 0) / rangos.length;
+            const limSup = media + 2.66 * rMedio;
+            const limInf = Math.max(0, media - 2.66 * rMedio);
+
+            const colores = velNetas.map(v => v >= limInf && v <= limSup ? '#10b981' : '#ef4444');
+
+            const tracePuntos = {
+                x: datos.map((d, i) => `${i + 1}`), y: velNetas, type: 'scatter', mode: 'markers',
+                marker: { color: colores, size: 6 }, name: 'Vel. neta'
+            };
+
+            const traceMedia = {
+                x: datos.map((d, i) => `${i + 1}`), y: Array(velNetas.length).fill(media), type: 'scatter',
+                mode: 'lines', line: { color: '#6366f1', width: 2 }, name: 'Media'
+            };
+
+            const layout = {
+                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
+                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('grafico3', [tracePuntos, traceMedia], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico4_pareto() {
+            const motivosTotales = {};
+            datosFiltrados.forEach(d => {
+                d.motivos.forEach(m => {
+                    const motivo = m.trim();
+                    if (motivo) motivosTotales[motivo] = (motivosTotales[motivo] || 0) + d.parasNoPlan;
+                });
+            });
+
+            const motivosOrd = Object.entries(motivosTotales).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const labels = motivosOrd.map(([m]) => m);
+            const valores = motivosOrd.map(([, v]) => v);
+            const total = valores.reduce((s, v) => s + v, 0);
+
+            let acumulado = 0;
+            const porcentajesAcum = valores.map(v => {
+                acumulado += v;
+                return (acumulado / total) * 100;
+            });
+
+            const colores = porcentajesAcum.map((pAcum, idx) => {
+                const acumAntes = idx === 0 ? 0 : porcentajesAcum[idx - 1];
+                return acumAntes < 80 ? '#dc2626' : '#9ca3af';
+            });
+
+            const traceBarras = { x: labels, y: valores, type: 'bar', marker: { color: colores }, name: 'Horas' };
+            const traceLinea = { x: labels, y: porcentajesAcum, type: 'scatter', mode: 'lines+markers',
+                marker: { color: '#2563eb', size: 6 }, line: { color: '#2563eb', width: 2 }, name: '%Acum', yaxis: 'y2' };
+
+            const layout = {
+                title: false, margin: { l: 60, r: 60, t: 20, b: 60 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
+                yaxis: { title: 'Horas', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                yaxis2: { title: '%Acum', overlaying: 'y', side: 'right', range: [0, 100] },
+                xaxis: { tickangle: -45 }, hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('grafico4', [traceBarras, traceLinea], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico5_boxplots(estandar) {
+            const porPersonas = {};
+            datosFiltrados.forEach(d => {
+                if (!porPersonas[d.personal]) porPersonas[d.personal] = [];
+                porPersonas[d.personal].push(d.velocidadNeta);
+            });
+
+            const traces = [];
+            Object.keys(porPersonas).map(Number).sort((a, b) => a - b)
+                .filter(p => porPersonas[p].length >= 3)
+                .forEach(p => {
+                    traces.push({ y: porPersonas[p], name: `${p} pers`, type: 'box', marker: { color: '#6366f1' } });
+                });
+
+            const layout = {
+                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
+                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' }
+            };
+
+            Plotly.newPlot('grafico5', traces, layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico6_scatter(estandar) {
+            const x = datosFiltrados.map(d => d.velocidadNeta);
+            const y = datosFiltrados.map(d => d.porcDefectos);
+            const colores = y.map(defect => defect > 3 ? '#ef4444' : '#2563eb');
+
+            const traceScatter = { x: x, y: y, type: 'scatter', mode: 'markers',
+                marker: { color: colores, size: 6, opacity: 0.7 }, name: 'Turnos' };
+
+            const layout = {
+                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
+                xaxis: { title: 'Velocidad neta (cer/h)', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                yaxis: { title: '% Defectos', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                hovermode: 'closest'
+            };
+
+            Plotly.newPlot('grafico6', [traceScatter], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function grafico7_heatmap(estandar) {
+            const heatmapData = {};
+            datosFiltrados.forEach(d => {
+                const fecha = new Date(d.fecha);
+                const dia = fecha.getDate();
+                const mes = fecha.getMonth() + 1;
+                const semana = Math.ceil((dia - fecha.getDay() + 4) / 7);
+                const key = `${mes}-${semana}-${dia}`;
+                if (!heatmapData[key]) heatmapData[key] = [];
+                heatmapData[key].push(d.velocidadNeta);
+            });
+
+            const semanas = new Set();
+            const dias = new Set();
+            const valoresHeatmap = [];
+
+            Object.entries(heatmapData).sort((a, b) => a[0].localeCompare(b[0])).forEach(([key, velocs]) => {
+                const [mes, sem, dia] = key.split('-');
+                semanas.add(parseInt(sem));
+                dias.add(parseInt(dia));
+                const promedio = velocs.reduce((s, v) => s + v, 0) / velocs.length;
+                valoresHeatmap.push({ semana: parseInt(sem), dia: parseInt(dia), valor: promedio });
+            });
+
+            const semanasOrd = Array.from(semanas).sort((a, b) => a - b);
+            const diasOrd = Array.from(dias).sort((a, b) => a - b);
+
+            const z = semanasOrd.map(s =>
+                diasOrd.map(d => {
+                    const item = valoresHeatmap.find(v => v.semana === s && v.dia === d);
+                    return item ? item.valor : null;
+                })
+            );
+
+            const traceHeatmap = {
+                z: z, x: diasOrd.map(d => `Día ${d}`), y: semanasOrd.map(s => `S${s}`),
+                type: 'heatmap', colorscale: [[0, '#dc2626'], [0.5, '#d97706'], [1, '#2563eb']],
+                zmid: estandar, colorbar: { title: 'Cer/h' }
+            };
+
+            const layout = {
+                title: false, margin: { l: 60, r: 100, t: 20, b: 60 }, plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' }
+            };
+
+            Plotly.newPlot('grafico7', [traceHeatmap], layout, { responsive: true, displayModeBar: false });
+        }
+
+        // UTILIDADES
+        function formatoNumero(valor, decimales) {
+            if (valor === null || valor === undefined) return 'sin dato';
+            return new Intl.NumberFormat('es-EC', {
+                minimumFractionDigits: decimales, maximumFractionDigits: decimales
+            }).format(valor);
+        }
+
+        function formatoPorcentaje(valor) {
+            if (valor === null || valor === undefined) return 'sin dato';
+            return new Intl.NumberFormat('es-EC', {
+                minimumFractionDigits: 1, maximumFractionDigits: 1, style: 'percent'
+            }).format(valor / 100);
+        }
+
+        function mostrarError(mensaje) {
+            const banner = document.getElementById('errorBanner');
+            if (mensaje) {
+                banner.textContent = mensaje;
+                banner.classList.add('show');
+            } else {
+                banner.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
