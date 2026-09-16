@@ -3,81 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Faenamiento Porcino v41</title>
+    <title>Faenamiento Porcino - Tablero de Producción</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.35.0/dist/plotly.min.js"></script>
     <style>
         :root {
-            --c-fondo: #ffffff;
-            --c-panel: #f8f9fa;
-            --c-texto: #1f2937;
-            --c-borde: #e5e7eb;
-            --c-base: #6366f1;
-            --c-acento: #ef4444;
-            --c-positivo: #10b981;
-            --c-neutro: #9ca3af;
-            --c-alerta-amarillo: #f59e0b;
+            --c-fondo: #eef1f4;
+            --c-panel: #ffffff;
+            --c-cabecera: #1f2933;
+            --c-borde: #dde3e8;
+            --c-texto: #1f2933;
+            --c-texto-mute: #5c6b78;
+            --c-base: #4c6a82;
+            --c-base-fuerte: #3a5568;
+            --c-medio: #88a0b3;
+            --c-claro: #c3d0da;
+            --c-acento: #b23b26;
+            --c-secundario: #c98f2e;
+            --c-positivo: #4c6b58;
+            --c-neutro: #74808a;
         }
 
         @media (prefers-color-scheme: dark) {
-            :root {
-                --c-fondo: #0f172a;
-                --c-panel: #1e293b;
-                --c-texto: #f1f5f9;
-                --c-borde: #334155;
-                --c-base: #818cf8;
-                --c-acento: #f87171;
-                --c-positivo: #34d399;
-                --c-neutro: #94a3b8;
-                --c-alerta-amarillo: #fbbf24;
+            :root:not([data-theme="light"]) {
+                --c-fondo: #10141a;
+                --c-panel: #171c23;
+                --c-cabecera: #0c0f13;
+                --c-borde: #2a323b;
+                --c-texto: #eef1f4;
+                --c-texto-mute: #9aa7b2;
+                --c-base: #86a8c2;
+                --c-base-fuerte: #a9c5da;
+                --c-medio: #6d8394;
+                --c-claro: #33404a;
+                --c-acento: #e2694f;
+                --c-secundario: #e8b458;
+                --c-positivo: #85ab93;
+                --c-neutro: #8b96a0;
             }
         }
 
-        [data-theme="dark"] {
-            --c-fondo: #0f172a;
-            --c-panel: #1e293b;
-            --c-texto: #f1f5f9;
-            --c-borde: #334155;
+        :root[data-theme="dark"] {
+            --c-fondo: #10141a;
+            --c-panel: #171c23;
+            --c-cabecera: #0c0f13;
+            --c-borde: #2a323b;
+            --c-texto: #eef1f4;
+            --c-texto-mute: #9aa7b2;
+            --c-base: #86a8c2;
+            --c-base-fuerte: #a9c5da;
+            --c-medio: #6d8394;
+            --c-claro: #33404a;
+            --c-acento: #e2694f;
+            --c-secundario: #e8b458;
+            --c-positivo: #85ab93;
+            --c-neutro: #8b96a0;
         }
 
-        [data-theme="light"] {
-            --c-fondo: #ffffff;
-            --c-panel: #f8f9fa;
-            --c-texto: #1f2937;
-            --c-borde: #e5e7eb;
+        :root[data-theme="light"] {
+            --c-fondo: #eef1f4;
+            --c-panel: #ffffff;
+            --c-cabecera: #1f2933;
+            --c-borde: #dde3e8;
+            --c-texto: #1f2933;
+            --c-texto-mute: #5c6b78;
+            --c-base: #4c6a82;
+            --c-base-fuerte: #3a5568;
+            --c-medio: #88a0b3;
+            --c-claro: #c3d0da;
+            --c-acento: #b23b26;
+            --c-secundario: #c98f2e;
+            --c-positivo: #4c6b58;
+            --c-neutro: #74808a;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--c-fondo);
+            margin: 0;
+            font-family: "Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
             color: var(--c-texto);
-            line-height: 1.6;
+            background: var(--c-fondo);
+            font-variant-numeric: tabular-nums;
             transition: background-color 0.3s, color 0.3s;
         }
 
-        .header {
-            background-color: var(--c-panel);
-            border-bottom: 1px solid var(--c-borde);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        h1, h2 {
+            text-wrap: balance;
+            font-family: "Archivo", "Segoe UI", sans-serif;
+        }
+
+        header {
+            background: var(--c-cabecera);
+            color: #f2f5f7;
+            padding: 26px clamp(16px, 4vw, 44px) 28px;
+            border-bottom: 3px solid var(--c-base);
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 2rem;
         }
 
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .header-contenido { flex: 1; }
+
+        header .eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0 0 6px;
         }
 
-        .header-right {
+        header h1 {
+            margin: 0 0 6px;
+            font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        header p#subtitulo {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.92rem;
+        }
+
+        .header-controles {
             display: flex;
             gap: 1rem;
             align-items: center;
@@ -90,1278 +142,1028 @@
             padding: 0.5rem 1rem;
             border-radius: 0.375rem;
             cursor: pointer;
-            font-size: 1rem;
-            transition: opacity 0.2s;
-        }
-
-        .theme-toggle:hover {
-            opacity: 0.8;
-        }
-
-        .error-banner {
-            background-color: var(--c-acento);
-            color: white;
-            padding: 1rem;
-            margin: 1rem;
-            border-radius: 0.375rem;
-            display: none;
-        }
-
-        .error-banner.show {
-            display: block;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem 2rem;
-        }
-
-        .filtros {
-            background-color: var(--c-panel);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--c-borde);
-        }
-
-        .filtros-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .filtro-grupo {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filtro-grupo label {
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--c-texto);
-        }
-
-        .filtro-grupo input[type="date"],
-        .filtro-grupo input[type="number"],
-        .filtro-grupo select {
-            padding: 0.5rem;
-            border: 1px solid var(--c-borde);
-            border-radius: 0.375rem;
-            background-color: var(--c-fondo);
-            color: var(--c-texto);
-            font-size: 0.875rem;
-        }
-
-        .filtro-grupo input[type="range"] {
-            width: 100%;
-        }
-
-        .filtro-grupo .range-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--c-neutro);
-            margin-top: 0.25rem;
-        }
-
-        .articulos-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .chip {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid var(--c-borde);
-            border-radius: 1rem;
-            cursor: pointer;
-            background-color: var(--c-fondo);
-            color: var(--c-texto);
-            font-size: 0.813rem;
+            font-size: 0.9rem;
+            font-weight: 600;
             transition: all 0.2s;
         }
 
-        .chip.active {
-            background-color: var(--c-base);
-            color: white;
+        .theme-toggle:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        main {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 22px clamp(16px, 4vw, 44px) 60px;
+        }
+
+        .panel-filtros {
+            background: var(--c-panel);
+            border: 1px solid var(--c-borde);
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 22px;
+        }
+
+        .filtros-rejilla {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px 22px;
+            align-items: end;
+        }
+
+        .campo-filtro label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--c-texto-mute);
+            margin-bottom: 7px;
+        }
+
+        .campo-filtro input[type="date"],
+        .campo-filtro input[type="number"],
+        .campo-filtro select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--c-borde);
+            border-radius: 7px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            color: var(--c-texto);
+            background: var(--c-fondo);
+        }
+
+        .campo-filtro input[type="range"] {
+            width: 100%;
+            accent-color: var(--c-base);
+        }
+
+        .valor-filtro {
+            font-size: 0.78rem;
+            color: var(--c-base-fuerte);
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .fila-articulos {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--c-borde);
+        }
+
+        .fila-articulos > span.etiqueta {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--c-texto-mute);
+            margin-bottom: 9px;
+        }
+
+        #fichasArticulos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ficha {
+            display: inline-block;
+            padding: 6px 13px;
+            border-radius: 999px;
+            border: 1px solid var(--c-claro);
+            color: var(--c-texto-mute);
+            background: var(--c-panel);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.12s ease;
+        }
+
+        .ficha.activa {
+            border-color: var(--c-base);
+            background: var(--c-base);
+            color: #ffffff;
+        }
+
+        .ficha:hover {
             border-color: var(--c-base);
         }
 
-        .chip:hover {
-            border-color: var(--c-base);
+        .acciones-filtro {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--c-borde);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .kpi-grid {
+        #conteo {
+            font-size: 0.84rem;
+            color: var(--c-texto-mute);
+        }
+
+        #reiniciar {
+            padding: 9px 18px;
+            border-radius: 7px;
+            border: 1px solid var(--c-base);
+            background: transparent;
+            color: var(--c-base-fuerte);
+            font-family: inherit;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+
+        #reiniciar:hover {
+            background: var(--c-base);
+            color: #fff;
+        }
+
+        .rejilla-kpis {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 14px;
+            margin-bottom: 26px;
         }
 
-        .kpi-card {
-            background-color: var(--c-panel);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border-left: 4px solid var(--c-base);
+        .tarjeta {
+            background: var(--c-panel);
             border: 1px solid var(--c-borde);
-            border-left: 4px solid var(--c-base);
+            border-left: 4px solid var(--c-positivo);
+            border-radius: 9px;
+            padding: 15px 17px;
+            transition: all 0.12s ease;
         }
 
-        .kpi-card.status-bien {
-            border-left-color: var(--c-positivo);
+        .tarjeta:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .kpi-card.status-alerta {
-            border-left-color: var(--c-alerta-amarillo);
-        }
-
-        .kpi-card.status-mal {
+        .tarjeta.alerta {
             border-left-color: var(--c-acento);
         }
 
-        .kpi-label {
-            font-size: 0.75rem;
-            color: var(--c-neutro);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .kpi-valor {
-            font-size: 1.875rem;
+        .tarjeta .titulo {
+            font-size: 0.72rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--c-texto-mute);
+            margin-bottom: 7px;
         }
 
-        .kpi-meta {
-            font-size: 0.75rem;
-            color: var(--c-neutro);
+        .tarjeta .cifra {
+            font-family: "Archivo", sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--c-texto);
+            line-height: 1.1;
         }
 
-        .graficos {
+        .tarjeta.alerta .cifra {
+            color: var(--c-acento);
+        }
+
+        .tarjeta .nota {
+            font-size: 0.76rem;
+            color: var(--c-texto-mute);
+            margin-top: 4px;
+        }
+
+        .rejilla-graficos {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 18px;
         }
 
-        .grafico-container {
-            background-color: var(--c-panel);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
+        .tarjeta-grafico {
+            background: var(--c-panel);
             border: 1px solid var(--c-borde);
+            border-radius: 12px;
+            padding: 18px 20px 8px;
+            transition: all 0.12s ease;
         }
 
-        .grafico-container h3 {
-            margin-bottom: 1rem;
+        .tarjeta-grafico:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .tarjeta-grafico.ancho {
+            grid-column: 1 / -1;
+        }
+
+        .tarjeta-grafico h2 {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            margin: 0 0 2px;
+            color: var(--c-texto);
         }
 
-        .plotly-chart {
+        .tarjeta-grafico .subtitulo-grafico {
+            font-size: 0.78rem;
+            color: var(--c-texto-mute);
+            margin: 0 0 10px;
+        }
+
+        .grafico {
             width: 100%;
-            height: 400px;
+            height: 360px;
         }
 
-        .loading {
+        .vacio {
+            height: 360px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--c-texto-mute);
+            font-size: 0.88rem;
             text-align: center;
-            padding: 2rem;
-            color: var(--c-neutro);
+            padding: 0 20px;
         }
 
-        .spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            border: 3px solid var(--c-borde);
-            border-top-color: var(--c-base);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        footer#pie {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 10px clamp(16px, 4vw, 44px) 40px;
+            font-size: 0.76rem;
+            color: var(--c-texto-mute);
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .estado-carga {
+            text-align: center;
+            padding: 40px;
+            color: var(--c-texto-mute);
         }
 
-        @media (max-width: 768px) {
-            .header {
+        @media (max-width: 640px) {
+            .rejilla-graficos {
+                grid-template-columns: 1fr;
+            }
+            .acciones-filtro {
                 flex-direction: column;
                 align-items: flex-start;
             }
-
-            .header-right {
-                width: 100%;
-                justify-content: flex-start;
+            header {
+                flex-direction: column;
+                gap: 1rem;
             }
-
-            .filtros-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .kpi-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-
-            .plotly-chart {
-                height: 300px;
-            }
-        }
-
-        .sin-datos {
-            text-align: center;
-            padding: 2rem;
-            color: var(--c-neutro);
+            .header-contenido { width: 100%; }
+            .header-controles { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div>
-            <h1>📊 Dashboard Faenamiento Porcino</h1>
-            <p style="font-size: 0.875rem; color: var(--c-neutro); margin-top: 0.25rem;">Monitoreo en vivo • v41 • Datos desde CSV</p>
-        </div>
-        <div class="header-right">
-            <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
-        </div>
+
+<header>
+    <div class="header-contenido">
+        <p class="eyebrow">Línea primaria de faenamiento</p>
+        <h1>Faenamiento porcino — tablero de producción</h1>
+        <p id="subtitulo">Cargando datos...</p>
     </div>
-
-    <div id="errorBanner" class="error-banner"></div>
-
-    <div class="container">
-        <!-- FILTROS -->
-        <div class="filtros">
-            <h3 style="margin-bottom: 1rem;">Filtros</h3>
-            <div class="filtros-grid">
-                <div class="filtro-grupo">
-                    <label>Fecha desde</label>
-                    <input type="date" id="filtroFechaDesde">
-                </div>
-                <div class="filtro-grupo">
-                    <label>Fecha hasta</label>
-                    <input type="date" id="filtroFechaHasta">
-                </div>
-                <div class="filtro-grupo">
-                    <label>Línea de producción</label>
-                    <select id="filtroLinea">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-                <div class="filtro-grupo">
-                    <label>Categoría</label>
-                    <select id="filtroCategoria">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-                <div class="filtro-grupo">
-                    <label>Dotación (personal)</label>
-                    <input type="range" id="filtroDotacionMin" min="1" max="50">
-                    <input type="range" id="filtroDotacionMax" min="1" max="50">
-                    <div class="range-labels">
-                        <span id="dotacionMinLabel">1</span>
-                        <span id="dotacionMaxLabel">50</span>
-                    </div>
-                </div>
-                <div class="filtro-grupo">
-                    <label>Estándar (cerdos/hora)</label>
-                    <input type="number" id="filtroEstandar" value="40" min="10" max="100">
-                </div>
-            </div>
-        </div>
-
-        <!-- KPIs -->
-        <div id="kpisContainer" class="kpi-grid"></div>
-
-        <!-- GRÁFICOS -->
-        <div class="graficos">
-            <div class="grafico-container">
-                <h3>1. Cascada de Pérdidas</h3>
-                <div id="grafico1" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>2. Tendencia Semanal (Velocidad vs Dotación)</h3>
-                <div id="grafico2" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>3. Carta de Control Shewhart</h3>
-                <div id="grafico3" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>4. Pareto de Paradas</h3>
-                <div id="grafico4" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>5. Dotación vs Velocidad Neta</h3>
-                <div id="grafico5" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>6. Velocidad vs Defectos</h3>
-                <div id="grafico6" class="plotly-chart"></div>
-            </div>
-            <div class="grafico-container">
-                <h3>7. Mapa de Calor (Semana × Día)</h3>
-                <div id="grafico7" class="plotly-chart"></div>
-            </div>
-        </div>
+    <div class="header-controles">
+        <button class="theme-toggle" id="toggleTema">🌙 Oscuro</button>
     </div>
+</header>
 
-    <script>
-        // CONFIGURACIÓN
-        const CSV_FILE = 'datos.csv';
+<main>
 
-        // Estado global
-        let datosCompletos = [];
-        let datosFiltrados = [];
-        let metadata = {};
+    <section class="panel-filtros">
+        <div class="filtros-rejilla">
+            <div class="campo-filtro">
+                <label for="fechaInicio">Fecha desde</label>
+                <input type="date" id="fechaInicio">
+            </div>
+            <div class="campo-filtro">
+                <label for="fechaFin">Fecha hasta</label>
+                <input type="date" id="fechaFin">
+            </div>
+            <div class="campo-filtro">
+                <label for="filtroLinea">Línea de producción</label>
+                <select id="filtroLinea"></select>
+            </div>
+            <div class="campo-filtro">
+                <label for="filtroCategoria">Categoría</label>
+                <select id="filtroCategoria"></select>
+            </div>
+            <div class="campo-filtro">
+                <label for="estandar">Estándar (cerdos/hora) <span class="valor-filtro" id="etiquetaEstandar"></span></label>
+                <input type="number" id="estandar" step="1" min="1">
+            </div>
+            <div class="campo-filtro">
+                <label for="personalMinimo">Dotación mínima <span class="valor-filtro" id="etiquetaPersonalMinimo"></span></label>
+                <input type="range" id="personalMinimo">
+            </div>
+        </div>
 
-        // INICIALIZACIÓN
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeTheme();
-            cargarDatos();
-            setupEventListeners();
+        <div class="fila-articulos">
+            <span class="etiqueta">Artículo (clic para incluir o excluir)</span>
+            <div id="fichasArticulos"></div>
+        </div>
+
+        <div class="acciones-filtro">
+            <span id="conteo"></span>
+            <button id="reiniciar" type="button">Reiniciar filtros</button>
+        </div>
+    </section>
+
+    <section class="rejilla-kpis" id="rejillaKpis"></section>
+
+    <section class="rejilla-graficos">
+        <div class="tarjeta-grafico ancho">
+            <h2>Cascada de pérdidas</h2>
+            <p class="subtitulo-grafico">Del potencial teórico a la producción buena: dónde se pierden cerdos.</p>
+            <div id="grafico1" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico ancho">
+            <h2>Tendencia semanal</h2>
+            <p class="subtitulo-grafico">Velocidad neta y bruta contra el estándar, con la dotación promedio de fondo.</p>
+            <div id="grafico2" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico">
+            <h2>Carta de control</h2>
+            <p class="subtitulo-grafico">Velocidad neta por turno; puntos fuera de límites indican causas especiales.</p>
+            <div id="grafico3" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico">
+            <h2>Pareto de paradas</h2>
+            <p class="subtitulo-grafico">Motivos de parada no planificada ordenados por horas perdidas.</p>
+            <div id="grafico4" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico">
+            <h2>Dotación vs velocidad</h2>
+            <p class="subtitulo-grafico">Distribución de cerdos por hora según la cantidad de personal en el turno.</p>
+            <div id="grafico5" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico">
+            <h2>Velocidad vs defectos</h2>
+            <p class="subtitulo-grafico">Relación entre velocidad de producción y tasa de defectos de proceso.</p>
+            <div id="grafico6" class="grafico"></div>
+        </div>
+
+        <div class="tarjeta-grafico ancho">
+            <h2>Mapa de calor semana × día</h2>
+            <p class="subtitulo-grafico">Cerdos por hora productiva, por semana y día de la semana.</p>
+            <div id="grafico7" class="grafico"></div>
+        </div>
+    </section>
+
+</main>
+
+<footer id="pie"></footer>
+
+<script>
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const UMBRAL_ALERTA = 0.85;
+const MINIMO_GRUPO = 3;
+const TOP_MOTIVOS = 10;
+const ESTANDAR_NOMINAL = 40;
+
+let COLORES, TIPOGRAFIA, CONFIGURACION;
+let estado = { turnos: [], meta: {}, articulosActivos: new Set() };
+
+function leerVar(nombre) { return getComputedStyle(document.documentElement).getPropertyValue(nombre).trim(); }
+function tema() {
+    return {
+        base: leerVar("--c-base"),
+        medio: leerVar("--c-medio"),
+        claro: leerVar("--c-claro"),
+        acento: leerVar("--c-acento"),
+        secundario: leerVar("--c-secundario"),
+        positivo: leerVar("--c-positivo"),
+        neutro: leerVar("--c-neutro"),
+        tinta: leerVar("--c-texto"),
+        linea: leerVar("--c-borde")
+    };
+}
+
+function sel(id) { return document.getElementById(id); }
+function numero(valor, decimales) {
+    if (valor === null || valor === undefined || isNaN(valor)) return "sin dato";
+    return valor.toLocaleString("es-EC", { minimumFractionDigits: decimales || 0, maximumFractionDigits: decimales || 0 });
+}
+function porcentaje(valor, decimales) {
+    if (valor === null || valor === undefined || isNaN(valor)) return "sin dato";
+    return (valor * 100).toFixed(decimales === undefined ? 1 : decimales) + " %";
+}
+function sumar(lista, clave) {
+    return lista.reduce((t, item) => {
+        var v = item[clave];
+        return t + (typeof v === "number" && !isNaN(v) ? v : 0);
+    }, 0);
+}
+function promedio(valores) {
+    var l = valores.filter(v => typeof v === "number" && !isNaN(v));
+    if (!l.length) return null;
+    return l.reduce((a, b) => a + b, 0) / l.length;
+}
+function mediana(valores) {
+    var o = valores.slice().sort((a, b) => a - b);
+    if (!o.length) return null;
+    var m = Math.floor(o.length / 2);
+    return o.length % 2 ? o[m] : (o[m - 1] + o[m]) / 2;
+}
+function agrupar(lista, fn) {
+    var m = new Map();
+    lista.forEach(item => {
+        var c = fn(item);
+        if (c) {
+            if (!m.has(c)) m.set(c, []);
+            m.get(c).push(item);
+        }
+    });
+    return m;
+}
+
+function calcularKpis(turnos, estandar) {
+    var cerdos = sumar(turnos, "cerdos");
+    var buenos = sumar(turnos, "buenos");
+    var hProd = sumar(turnos, "horasProductivas");
+    var hProg = sumar(turnos, "horasProgramadas");
+    var parNo = sumar(turnos, "parasNoPlanificadas");
+    var parSi = sumar(turnos, "parasPlanificadas");
+    var kilos = sumar(turnos, "kgProcesado");
+    var hH = turnos.reduce((t, t1) => {
+        var h = t1.horasProductivas;
+        var p = t1.personal;
+        if (typeof h === "number" && !isNaN(h) && typeof p === "number" && !isNaN(p)) return t + h * p;
+        return t;
+    }, 0);
+
+    var vNeta = hProd ? cerdos / hProd : null;
+    var vBruta = hProg ? cerdos / hProg : null;
+    var disp = hProg > 0 ? Math.min(((hProg - parSi - parNo) / hProg) * 100, 100) : null;
+    var renCerdos = (hProd > 0) ? (cerdos / (estandar * hProd)) : null;
+    var calidad = cerdos ? buenos / cerdos : null;
+    var ritmo = vNeta !== null ? vNeta / estandar : null;
+    var kH = hProd ? kilos / hProd : null;
+    var kHH = hH ? kilos / hH : null;
+    var pProm = cerdos ? kilos / cerdos : null;
+
+    var pot = estandar * hProg;
+    var pRitmo = Math.max(estandar * hProd - cerdos, 0);
+
+    return {
+        turnos: turnos.length,
+        cerdos,
+        kilosProcesados: kilos,
+        kilosHora: kH,
+        kilosHH: kHH,
+        velocidadNeta: vNeta,
+        velocidadBruta: vBruta,
+        disponibilidad: disp,
+        rendimientoCerdos: renCerdos,
+        pesoProm: pProm,
+        calidad,
+        ritmo,
+        oee: (disp !== null && ritmo !== null && calidad !== null) ? (disp / 100) * ritmo * calidad : null,
+        potencial: pot,
+        perdidaPlanificada: estandar * parSi,
+        perdidaNoPlanificada: estandar * parNo,
+        perdidaRitmo: pRitmo,
+        perdidaCalidad: cerdos - buenos,
+        perdidaTotal: pot - buenos,
+        personalPromedio: promedio(turnos.map(t => t.personal))
+    };
+}
+
+function renderKpis(kpis, estandar) {
+    var tarjetas = [
+        { titulo: "Cerdos procesados", cifra: numero(kpis.cerdos, 0), nota: kpis.turnos + " turnos", alerta: false },
+        { titulo: "Velocidad neta", cifra: numero(kpis.velocidadNeta, 1), nota: "cerdos/hora productiva", alerta: kpis.ritmo !== null && kpis.ritmo < UMBRAL_ALERTA },
+        { titulo: "Velocidad bruta", cifra: numero(kpis.velocidadBruta, 1), nota: "cerdos/hora programada", alerta: kpis.velocidadBruta !== null && kpis.velocidadBruta < estandar * UMBRAL_ALERTA },
+        { titulo: "Cumplimiento", cifra: porcentaje(kpis.ritmo), nota: "vs " + numero(estandar, 0) + " cerdos/hora", alerta: kpis.ritmo !== null && kpis.ritmo < UMBRAL_ALERTA },
+        { titulo: "Disponibilidad", cifra: kpis.disponibilidad !== null ? kpis.disponibilidad.toFixed(1) + " %" : "sin dato", nota: "tiempo real / programado", alerta: kpis.disponibilidad !== null && kpis.disponibilidad < 85 },
+        { titulo: "Rendimiento", cifra: porcentaje(kpis.rendimientoCerdos), nota: "meta >80%", alerta: kpis.rendimientoCerdos !== null && kpis.rendimientoCerdos < 0.80 },
+        { titulo: "Peso promedio", cifra: numero(kpis.pesoProm, 1), nota: "kg/cerdo", alerta: false },
+        { titulo: "Calidad", cifra: porcentaje(kpis.calidad, 2), nota: "sin defecto de línea", alerta: kpis.calidad !== null && kpis.calidad < 0.97 },
+        { titulo: "OEE", cifra: porcentaje(kpis.oee), nota: "disponibilidad × ritmo × calidad", alerta: kpis.oee !== null && kpis.oee < 0.70 },
+        { titulo: "Kilos/hora", cifra: numero(kpis.kilosHora, 0), nota: "kg procesados/hora", alerta: false },
+        { titulo: "Kilos h/h", cifra: numero(kpis.kilosHH, 1), nota: "kg/hora hombre", alerta: false },
+        { titulo: "Dotación promedio", cifra: numero(kpis.personalPromedio, 0), nota: "personas por turno", alerta: false }
+    ];
+    var html = tarjetas.map(t => {
+        var cl = t.alerta ? "tarjeta alerta" : "tarjeta";
+        return '<div class="' + cl + '"><div class="titulo">' + t.titulo + '</div><div class="cifra">' + t.cifra + '</div><div class="nota">' + t.nota + '</div></div>';
+    }).join("");
+    sel("rejillaKpis").innerHTML = html;
+}
+
+function grafico1_cascada(kpis) {
+    if (!kpis.turnos) { Plotly.purge("grafico1"); sel("grafico1").innerHTML = '<div class="vacio">Sin datos</div>'; return; }
+    var trazo = {
+        type: "waterfall",
+        orientation: "v",
+        measure: ["absolute", "relative", "relative", "relative", "relative", "total"],
+        x: ["Potencial", "Paradas plan.", "Paradas no plan.", "Pérdida ritmo", "Defectos", "Producción buena"],
+        y: [kpis.potencial, -kpis.perdidaPlanificada, -kpis.perdidaNoPlanificada, -kpis.perdidaRitmo, -kpis.perdidaCalidad, 0],
+        text: [numero(kpis.potencial, 0), numero(kpis.perdidaPlanificada, 0), numero(kpis.perdidaNoPlanificada, 0), numero(kpis.perdidaRitmo, 0), numero(kpis.perdidaCalidad, 0), ""],
+        textposition: "outside",
+        textfont: { size: 12, color: COLORES.tinta },
+        connector: { line: { color: COLORES.claro } },
+        decreasing: { marker: { color: COLORES.acento } },
+        increasing: { marker: { color: COLORES.secundario } },
+        totals: { marker: { color: COLORES.base } },
+        hovertemplate: "%{x}<br>%{y:,.0f} cerdos<extra></extra>"
+    };
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 26, t: 18, b: 96 },
+        hovermode: "closest",
+        showlegend: false,
+        xaxis: { showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea, tickangle: -18 },
+        yaxis: { title: { text: "Cerdos", font: { size: 13 } }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea, tickformat: ",.0f" }
+    };
+    Plotly.react("grafico1", [trazo], diseno, CONFIGURACION);
+}
+
+function grafico2_tendencia(turnos, estandar) {
+    var gr = agrupar(turnos, t => t.semana);
+    var sem = Array.from(gr.keys()).filter(s => s !== null).sort((a, b) => a - b);
+    if (sem.length < 2) { Plotly.purge("grafico2"); sel("grafico2").innerHTML = '<div class="vacio">Se requieren al menos dos semanas</div>'; return; }
+
+    var etiq = [], netas = [], brutas = [], dot = [];
+    sem.forEach(s => {
+        var bl = gr.get(s);
+        var cer = sumar(bl, "cerdos");
+        var prod = sumar(bl, "horasProductivas");
+        var prog = sumar(bl, "horasProgramadas");
+        etiq.push("S" + s);
+        netas.push(prod ? cer / prod : null);
+        brutas.push(prog ? cer / prog : null);
+        dot.push(promedio(bl.map(t => t.personal)));
+    });
+
+    var trazos = [
+        { type: "bar", name: "Dotación prom.", x: etiq, y: dot, yaxis: "y2", marker: { color: COLORES.claro, opacity: 0.5 }, hovertemplate: "%{x}<br>%{y:.1f}<extra></extra>" },
+        { type: "scatter", mode: "lines+markers", name: "Vel. bruta", x: etiq, y: brutas, line: { color: COLORES.medio, width: 2, dash: "dash" }, marker: { size: 5 }, hovertemplate: "%{x}<br>%{y:.1f}<extra></extra>" },
+        { type: "scatter", mode: "lines+markers", name: "Vel. neta", x: etiq, y: netas, line: { color: COLORES.base, width: 3 }, marker: { size: 7 }, hovertemplate: "%{x}<br>%{y:.1f}<extra></extra>" },
+        { type: "scatter", mode: "lines", name: "Estándar", x: etiq, y: etiq.map(() => estandar), line: { color: COLORES.acento, width: 2, dash: "dash" }, hoverinfo: "skip" }
+    ];
+
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 62, t: 18, b: 62 },
+        hovermode: "closest",
+        showlegend: true,
+        legend: { orientation: "h", y: -0.25, x: 0, font: { color: COLORES.tinta } },
+        xaxis: { title: { text: "Semana" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis: { title: { text: "Cerdos/hora" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis2: { overlaying: "y", side: "right", showgrid: false, zeroline: false, showline: false, rangemode: "tozero", title: { text: "Dotación" } }
+    };
+    Plotly.react("grafico2", trazos, diseno, CONFIGURACION);
+}
+
+function grafico3_shewhart(turnos, estandar) {
+    var serie = turnos.filter(t => t.horasProductivas > 0 && t.cerdos > 0).map(t => ({
+        fecha: t.fecha,
+        valor: t.cerdos / t.horasProductivas,
+        articulo: t.articulo,
+        personal: t.personal
+    }));
+    if (serie.length < 8) { Plotly.purge("grafico3"); sel("grafico3").innerHTML = '<div class="vacio">Se requieren al menos 8 turnos</div>'; return; }
+
+    var valores = serie.map(p => p.valor);
+    var centro = promedio(valores);
+    var rangos = [];
+    for (var i = 1; i < valores.length; i++) rangos.push(Math.abs(valores[i] - valores[i - 1]));
+    var rMedio = promedio(rangos) || 0;
+    var sup = centro + 2.66 * rMedio;
+    var inf = Math.max(centro - 2.66 * rMedio, 0);
+
+    var normales = serie.filter(p => p.valor <= sup && p.valor >= inf);
+    var especiales = serie.filter(p => p.valor > sup || p.valor < inf);
+
+    function tp(d, c, tam, n) {
+        return {
+            type: "scatter",
+            mode: "markers",
+            name: n,
+            x: d.map(p => p.fecha),
+            y: d.map(p => p.valor),
+            marker: { color: c, size: tam, line: { color: COLORES.panel, width: 1 } },
+            customdata: d.map(p => [p.articulo, p.personal === null ? "sin dato" : p.personal]),
+            hovertemplate: "%{x}<br>%{y:.1f} cerdos/hora<br>%{customdata[0]}<br>Dotación %{customdata[1]}<extra></extra>"
+        };
+    }
+
+    var linea = { type: "scatter", mode: "lines", x: serie.map(p => p.fecha), y: valores, line: { color: COLORES.medio, width: 1.2 }, hoverinfo: "skip" };
+
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 26, t: 18, b: 62 },
+        hovermode: "closest",
+        showlegend: false,
+        xaxis: { title: { text: "Fecha" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis: { title: { text: "Cerdos/hora" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea },
+        shapes: [
+            { type: "line", xref: "paper", x0: 0, x1: 1, y0: centro, y1: centro, line: { color: COLORES.neutro, width: 1.4 } },
+            { type: "line", xref: "paper", x0: 0, x1: 1, y0: sup, y1: sup, line: { color: COLORES.medio, width: 1, dash: "dash" } },
+            { type: "line", xref: "paper", x0: 0, x1: 1, y0: inf, y1: inf, line: { color: COLORES.medio, width: 1, dash: "dash" } }
+        ],
+        annotations: [
+            { xref: "paper", x: 1, y: estandar, xanchor: "right", yanchor: "bottom", text: "Estándar " + numero(estandar, 0), showarrow: false, font: { color: COLORES.acento, size: 11 } }
+        ]
+    };
+    Plotly.react("grafico3", [linea, tp(normales, COLORES.base, 6, "Control"), tp(especiales, COLORES.acento, 10, "Causa especial")], diseno, CONFIGURACION);
+}
+
+function grafico4_pareto(turnos) {
+    var acum = new Map();
+    turnos.forEach(t => {
+        var m = t.motivos || [];
+        if (!m.length) return;
+        var h = (t.parasNoPlanificadas || 0) / m.length;
+        m.forEach(mot => {
+            var p = acum.get(mot) || { horas: 0, eventos: 0 };
+            p.horas += h;
+            p.eventos += 1;
+            acum.set(mot, p);
         });
+    });
+    if (!acum.size) { Plotly.purge("grafico4"); sel("grafico4").innerHTML = '<div class="vacio">Sin motivos registrados</div>'; return; }
 
-        // TEMA DARK/LIGHT
-        function initializeTheme() {
-            const theme = localStorage.getItem('theme') || 'auto';
-            applyTheme(theme);
-        }
+    var ord = Array.from(acum.entries()).sort((a, b) => b[1].horas - a[1].horas).slice(0, TOP_MOTIVOS);
+    var total = ord.reduce((t, p) => t + p[1].horas, 0);
+    var acumulado = 0;
+    var curva = ord.map(p => { acumulado += p[1].horas; return total ? acumulado / total : 0; });
 
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
-            applyTheme(next);
-        }
+    var barras = {
+        type: "bar",
+        x: ord.map(p => p[0]),
+        y: ord.map(p => p[1].horas),
+        marker: { color: ord.map((p, i) => i < 3 ? COLORES.acento : COLORES.base) },
+        text: ord.map(p => numero(p[1].horas, 1)),
+        textposition: "outside",
+        customdata: ord.map(p => p[1].eventos),
+        hovertemplate: "%{x}<br>%{y:.1f} horas<br>%{customdata} eventos<extra></extra>"
+    };
 
-        function applyTheme(theme) {
-            if (theme === 'auto') {
-                document.documentElement.removeAttribute('data-theme');
-            } else {
-                document.documentElement.setAttribute('data-theme', theme);
-            }
-            localStorage.setItem('theme', theme);
-        }
+    var ac = {
+        type: "scatter",
+        mode: "lines+markers",
+        yaxis: "y2",
+        x: ord.map(p => p[0]),
+        y: curva,
+        line: { color: COLORES.base, width: 2 },
+        marker: { size: 6, symbol: "diamond" },
+        text: curva.map(v => (v * 100).toFixed(0) + "%"),
+        textposition: "top center",
+        hovertemplate: "Acum. %{y:.0%}<extra></extra>"
+    };
 
-        // PARSEAR CSV (robusto para saltos de línea y encabezados multilinea)
-        function parsearCSV(csv) {
-            const filas = [];
-            let current = '';
-            let inQuotes = false;
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 58, t: 18, b: 130 },
+        hovermode: "closest",
+        showlegend: false,
+        xaxis: { showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea, tickangle: -35 },
+        yaxis: { title: { text: "Horas perdidas" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis2: { overlaying: "y", side: "right", range: [0, 1.05], tickformat: ".0%", showgrid: false, zeroline: false, showline: false, title: { text: "Acumulado" } }
+    };
+    Plotly.react("grafico4", [barras, ac], diseno, CONFIGURACION);
+}
 
-            for (let i = 0; i < csv.length; i++) {
-                const char = csv[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                    current += char;
-                } else if ((char === '\n' || char === '\r') && !inQuotes) {
-                    if (current.trim()) filas.push(current);
-                    current = '';
-                    if (csv[i] === '\r' && csv[i + 1] === '\n') i++; // Skip CRLF
-                } else {
-                    current += char;
-                }
-            }
-            if (current.trim()) filas.push(current);
+function grafico5_dotacion(turnos, estandar) {
+    var cd = turnos.filter(t => t.personal !== null && t.horasProductivas > 0);
+    var gr = agrupar(cd, t => Math.round(t.personal));
+    var niv = Array.from(gr.keys()).filter(n => gr.get(n).length >= MINIMO_GRUPO).sort((a, b) => a - b);
+    if (niv.length < 2) { Plotly.purge("grafico5"); sel("grafico5").innerHTML = '<div class="vacio">Dotación insuficiente para comparar grupos</div>'; return; }
 
-            if (filas.length < 2) return [];
+    var trazos = niv.map((n, idx) => {
+        var val = gr.get(n).map(t => t.cerdos / t.horasProductivas);
+        var med = promedio(val);
+        var col = idx % 2 === 0 ? COLORES.base : COLORES.medio;
+        return {
+            type: "scatter",
+            mode: "markers",
+            name: n + " personas",
+            x: val.map((v, i) => n + (Math.random() - 0.5) * 0.3),
+            y: val,
+            marker: { color: col, size: 7, opacity: 0.6, line: { color: COLORES.panel, width: 0.5 } },
+            text: val.map(v => numero(v, 1)),
+            textposition: "top center",
+            hovertemplate: "Dotación " + n + "<br>%{y:.1f} cerdos/hora<extra></extra>"
+        };
+    });
 
-            // Parsear headers
-            const headerFila = filas[0];
-            const headers = [];
-            let col = '';
-            let inQuotes2 = false;
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 26, t: 18, b: 62 },
+        hovermode: "closest",
+        showlegend: false,
+        xaxis: { title: { text: "Cantidad de personal" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis: { title: { text: "Cerdos/hora" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea },
+        shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: estandar, y1: estandar, line: { color: COLORES.acento, width: 2 } }]
+    };
+    Plotly.react("grafico5", trazos, diseno, CONFIGURACION);
+}
 
-            for (let i = 0; i < headerFila.length; i++) {
-                const char = headerFila[i];
-                if (char === '"') {
-                    inQuotes2 = !inQuotes2;
-                } else if (char === ',' && !inQuotes2) {
-                    headers.push(col.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').replace(/\s+/g, ' '));
-                    col = '';
-                } else {
-                    col += char;
-                }
-            }
-            if (col) headers.push(col.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').replace(/\s+/g, ' '));
+function grafico6_defectos(turnos, estandar) {
+    var puntos = turnos.filter(t => t.horasProductivas > 0 && t.cerdos > 0).map(t => ({
+        velocidad: t.cerdos / t.horasProductivas,
+        tasa: (t.defectosProceso || 0) / t.cerdos,
+        fecha: t.fecha
+    }));
+    if (puntos.length < 8) { Plotly.purge("grafico6"); sel("grafico6").innerHTML = '<div class="vacio">Se requieren al menos 8 turnos</div>'; return; }
 
-            // Parsear datos
-            const datos = [];
-            for (let i = 1; i < filas.length; i++) {
-                const fila = filas[i];
-                const row = {};
-                let field = '';
-                let colIdx = 0;
-                let inQuotes3 = false;
+    var corte = mediana(puntos.map(p => p.tasa));
+    var altos = puntos.filter(p => p.tasa > corte);
+    var bajos = puntos.filter(p => p.tasa <= corte);
 
-                for (let j = 0; j < fila.length; j++) {
-                    const char = fila[j];
-                    if (char === '"') {
-                        inQuotes3 = !inQuotes3;
-                    } else if (char === ',' && !inQuotes3) {
-                        row[headers[colIdx]] = field.trim().replace(/^"|"$/g, '');
-                        field = '';
-                        colIdx++;
-                    } else {
-                        field += char;
-                    }
-                }
-                if (colIdx < headers.length) {
-                    row[headers[colIdx]] = field.trim().replace(/^"|"$/g, '');
-                }
+    function nube(d, c, n) {
+        return {
+            type: "scatter",
+            mode: "markers",
+            name: n,
+            x: d.map(p => p.velocidad),
+            y: d.map(p => p.tasa),
+            marker: { color: c, size: 8, opacity: 0.6, line: { color: COLORES.panel, width: 0.5 } },
+            customdata: d.map(p => p.fecha),
+            hovertemplate: "%{customdata}<br>%{x:.1f} cerdos/hora<br>%{y:.2%} defectos<extra></extra>"
+        };
+    }
 
-                if (Object.keys(row).length > 0) datos.push(row);
-            }
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 68, r: 26, t: 18, b: 62 },
+        hovermode: "closest",
+        showlegend: true,
+        legend: { x: 0, y: 1, bgcolor: "rgba(255,255,255,0.8)" },
+        xaxis: { title: { text: "Velocidad neta (cerdos/hora)" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, showgrid: false, ticks: "outside", tickcolor: COLORES.linea },
+        yaxis: { title: { text: "Tasa de defecto" }, showline: true, linecolor: COLORES.neutro, mirror: false, zeroline: false, gridcolor: COLORES.linea, ticks: "outside", tickcolor: COLORES.linea, tickformat: ".1%" },
+        shapes: [{ type: "line", yref: "paper", y0: 0, y1: 1, x0: estandar, x1: estandar, line: { color: COLORES.acento, width: 1.6, dash: "dash" } }]
+    };
+    Plotly.react("grafico6", [nube(bajos, COLORES.base, "Defectos bajos"), nube(altos, COLORES.acento, "Defectos altos")], diseno, CONFIGURACION);
+}
 
-            return datos;
-        }
+function grafico7_heatmap(turnos, estandar) {
+    var val = turnos.filter(t => t.semana !== null && t.dia && t.horasProductivas > 0);
+    if (!val.length) { Plotly.purge("grafico7"); sel("grafico7").innerHTML = '<div class="vacio">Sin datos de calendario</div>'; return; }
 
-        // CARGA DE DATOS
-        async function cargarDatos() {
-            mostrarError('');
-            const container = document.querySelector('.container');
-            const loading = document.createElement('div');
-            loading.className = 'loading';
-            loading.innerHTML = '<div class="spinner"></div><p>Cargando datos desde CSV...</p>';
-            container.insertBefore(loading, container.firstChild);
+    var sem = Array.from(new Set(val.map(t => t.semana))).sort((a, b) => a - b);
+    var mat = sem.map(s => DIAS.map(d => {
+        var cel = val.filter(t => t.semana === s && t.dia === d);
+        if (!cel.length) return null;
+        var cer = sumar(cel, "cerdos");
+        var hor = sumar(cel, "horasProductivas");
+        return hor ? cer / hor : null;
+    }));
 
-            try {
-                const response = await fetch(CSV_FILE + '?v=' + Date.now(), { cache: 'no-store' });
-                if (!response.ok) throw new Error(`HTTP ${response.status} - Verifica que datos.csv exista en la carpeta`);
+    var trazo = {
+        type: "heatmap",
+        z: mat,
+        x: DIAS,
+        y: sem.map(s => "Semana " + s),
+        colorscale: [[0, COLORES.acento], [0.5, COLORES.secundario], [1, COLORES.positivo]],
+        zmid: estandar,
+        hoverongaps: false,
+        colorbar: { title: { text: "Cerdos/hora" }, outlinewidth: 0, thickness: 14, tickfont: { color: COLORES.tinta } },
+        text: mat.map(fila => fila.map(v => v !== null ? numero(v, 1) : "")),
+        texttemplate: "%{text}",
+        textfont: { size: 11, color: COLORES.tinta },
+        hovertemplate: "%{y} · %{x}<br>%{z:.1f} cerdos/hora<extra></extra>"
+    };
 
-                const csv = await response.text();
-                if (!csv) throw new Error('Archivo CSV vacío');
+    var diseno = {
+        font: TIPOGRAFIA,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 92, r: 26, t: 18, b: 62 },
+        hovermode: "closest",
+        showlegend: false,
+        xaxis: { showline: false, zeroline: false, showgrid: false },
+        yaxis: { showline: false, zeroline: false, gridcolor: "rgba(0,0,0,0)", autorange: "reversed" }
+    };
+    Plotly.react("grafico7", [trazo], diseno, CONFIGURACION);
+}
 
-                const datos = parsearCSV(csv);
-                if (datos.length === 0) throw new Error('Sin datos en el CSV');
+function obtenerFiltrados() {
+    var desde = sel("fechaInicio").value;
+    var hasta = sel("fechaFin").value;
+    var minimo = parseInt(sel("personalMinimo").value, 10);
+    var maximo = parseInt(sel("personalMaximo").value, 10);
+    var linea = sel("filtroLinea").value;
+    var categoria = sel("filtroCategoria").value;
 
-                console.log('✅ Filas parseadas:', datos.length);
-                console.log('Primer registro:', datos[0]);
-                console.log('Campos disponibles:', Object.keys(datos[0]));
+    return estado.turnos.filter(t => {
+        if (desde && t.fecha < desde) return false;
+        if (hasta && t.fecha > hasta) return false;
+        if (linea && linea !== "" && t.linea !== linea) return false;
+        if (categoria && categoria !== "" && t.articulo !== categoria) return false;
+        if (estado.articulosActivos.size && !estado.articulosActivos.has(t.articulo)) return false;
+        if (t.personal !== null && (t.personal < minimo || t.personal > maximo)) return false;
+        return true;
+    });
+}
 
-                datosCompletos = mapearDatos(datos);
-                console.log('Registros después de mapear:', datosCompletos.length);
-                console.log('Primer registro mapeado:', datosCompletos[0]);
+function actualizar() {
+    COLORES = tema();
+    TIPOGRAFIA.color = COLORES.tinta;
+    var estandar = parseFloat(sel("estandar").value);
+    var filtrados = obtenerFiltrados();
 
-                const antes = datosCompletos.length;
-                datosCompletos = datosCompletos.filter(d => d.cerdos > 0 && d.horasProd > 0);
-                console.log(`Filtrados: ${antes} → ${datosCompletos.length} (cerdos > 0 AND horasProd > 0)`);
+    sel("etiquetaEstandar").textContent = numero(estandar, 0) + " por hora";
+    sel("etiquetaPersonalMinimo").textContent = sel("personalMinimo").value + " personas";
+    sel("etiquetaPersonalMaximo").textContent = sel("personalMaximo").value + " personas";
+    sel("conteo").textContent = filtrados.length + " de " + estado.turnos.length + " turnos";
 
-                if (datosCompletos.length === 0) throw new Error('Sin datos válidos después de filtrar');
+    var kpis = calcularKpis(filtrados, estandar);
+    renderKpis(kpis, estandar);
+    grafico1_cascada(kpis);
+    grafico2_tendencia(filtrados, estandar);
+    grafico3_shewhart(filtrados, estandar);
+    grafico4_pareto(filtrados);
+    grafico5_dotacion(filtrados, estandar);
+    grafico6_defectos(filtrados, estandar);
+    grafico7_heatmap(filtrados, estandar);
+}
 
-                inicializarMetadata();
-                inicializarFiltros();
-                actualizar();
+async function cargarDatos() {
+    try {
+        sel("subtitulo").textContent = "Cargando datos desde GitHub...";
+        const response = await fetch("https://raw.githubusercontent.com/Distrogger/faenamiento/main/datos.csv");
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const text = await response.text();
+        const lineas = text.split('\n');
 
-                loading.remove();
-            } catch (err) {
-                mostrarError(`❌ Error cargando datos: ${err.message}`);
-                loading.remove();
-                console.error(err);
-            }
-        }
-
-        // MAPEO FLEXIBLE DE CAMPOS
-        function mapearDatos(json) {
-            // Función helper para buscar campo flexible
-            const getField = (row, ...keys) => {
-                for (const key of keys) {
-                    if (row[key] !== undefined && row[key] !== null) return row[key];
-                }
-                return '';
-            };
-
-            const parseNumber = (val) => {
-                if (!val) return 0;
-                return Number(val.toString().replace(/,/g, '.').replace(/%/g, '')) || 0;
-            };
-
-            return json.map(row => {
-                const fecha = convertirFecha(getField(row, 'FECHA DE PROCESO', 'FECHA', 'fecha'));
-                const linea = getField(row, 'LÍNEA PRODUCCION', 'LINEA PRODUCCION', 'LINEA', 'linea');
-                const articulo = getField(row, 'DESCRIPCIÓN ARTÍCULO', 'DESCRIPCION ARTICULO', 'ARTICULO', 'articulo').trim();
-                const personal = parseNumber(getField(row, 'CANTIDAD DE PERSONAL', 'PERSONAL', 'personal'));
-                const cerdos = parseNumber(getField(row, 'CANTIDAD DE CERDOS', 'CERDOS', 'cerdos'));
-                const defectos = parseNumber(getField(row, 'DEFECTOS PROCESO', 'UNIDADES CON DEFECTOS PROCESO', 'defectos'));
-                const buenos = cerdos > 0 ? cerdos - defectos : 0;
-                const kg = parseNumber(getField(row, 'KILOGRAMOS EN PIE', 'KG_PROCESADO', 'kilogramos'));
-                const horasProd = parseNumber(getField(row, 'HORAS PRODUCTIVAS', 'HORAS_PRODUCTIVAS', 'horas_productivas'));
-                const horasProg = parseNumber(getField(row, 'HORAS PROGRAMADAS', 'HORAS_PROGRAMADAS', 'horas_programadas'));
-                const parasNoPlan = parseNumber(getField(row, 'HORAS DE PARAS NO PLANIFICADAS', 'HORAS_PARAS_NOPLAN', 'paras_noplan'));
-                const parasPlan = parseNumber(getField(row, 'HORAS DE PARAS PLANIFICADAS', 'HORAS_PARAS_PLAN', 'paras_plan'));
-                const motivos = getField(row, 'MOTIVOS DE PARADAS', 'MOTIVOS', 'motivos').split(/[,;\/]/).filter(m => m.trim());
-
-                return {
-                    fecha, linea, articulo, personal, cerdos, defectos, buenos, kg,
-                    horasProd, horasProg, parasNoPlan, parasPlan, motivos,
-                    velocidadNeta: horasProd > 0 ? cerdos / horasProd : 0,
-                    velocidadBruta: horasProg > 0 ? cerdos / horasProg : 0,
-                    porcDefectos: cerdos > 0 ? (defectos / cerdos) * 100 : 0,
-                    pesoPromedio: cerdos > 0 ? kg / cerdos : 0,
-                    kiloshora: horasProd > 0 ? kg / horasProd : 0
-                };
-            });
-        }
-
-        // CONVERTIR FECHA
-        function convertirFecha(fechaStr) {
-            if (!fechaStr) return new Date().toISOString().split('T')[0];
-            try {
-                const partes = fechaStr.split('/');
-                if (partes.length === 3) {
-                    const [dia, mes, anio] = partes.map(p => parseInt(p));
-                    return new Date(anio, mes - 1, dia).toISOString().split('T')[0];
-                }
-            } catch(e) {}
-            return new Date().toISOString().split('T')[0];
-        }
-
-        // METADATA
-        function inicializarMetadata() {
-            const fechas = datosCompletos.map(d => new Date(d.fecha)).filter(f => !isNaN(f));
-            metadata.fechaMin = new Date(Math.min(...fechas)).toISOString().split('T')[0];
-            metadata.fechaMax = new Date(Math.max(...fechas)).toISOString().split('T')[0];
-            metadata.lineas = [...new Set(datosCompletos.map(d => d.linea).filter(Boolean))].sort();
-            metadata.articulos = [...new Set(datosCompletos.map(d => d.articulo).filter(Boolean))].sort();
-            metadata.personalMin = Math.min(...datosCompletos.map(d => d.personal));
-            metadata.personalMax = Math.max(...datosCompletos.map(d => d.personal));
-        }
-
-        // INICIALIZAR FILTROS
-        function inicializarFiltros() {
-            document.getElementById('filtroFechaDesde').value = metadata.fechaMin;
-            document.getElementById('filtroFechaDesde').min = metadata.fechaMin;
-            document.getElementById('filtroFechaDesde').max = metadata.fechaMax;
-
-            document.getElementById('filtroFechaHasta').value = metadata.fechaMax;
-            document.getElementById('filtroFechaHasta').min = metadata.fechaMin;
-            document.getElementById('filtroFechaHasta').max = metadata.fechaMax;
-
-            const selectLinea = document.getElementById('filtroLinea');
-            metadata.lineas.forEach(linea => {
-                const option = document.createElement('option');
-                option.value = linea;
-                option.textContent = linea;
-                selectLinea.appendChild(option);
-            });
-
-            const selectCategoria = document.getElementById('filtroCategoria');
-            metadata.articulos.forEach(articulo => {
-                const option = document.createElement('option');
-                option.value = articulo;
-                option.textContent = articulo || '(sin especificar)';
-                selectCategoria.appendChild(option);
-            });
-
-            document.getElementById('filtroDotacionMin').value = metadata.personalMin;
-            document.getElementById('filtroDotacionMax').value = metadata.personalMax;
-            document.getElementById('filtroDotacionMin').max = metadata.personalMax;
-            document.getElementById('filtroDotacionMax').max = metadata.personalMax;
-            updateRangeLabels();
-        }
-
-        // EVENT LISTENERS
-        function setupEventListeners() {
-            document.getElementById('filtroFechaDesde').addEventListener('change', actualizar);
-            document.getElementById('filtroFechaHasta').addEventListener('change', actualizar);
-            document.getElementById('filtroLinea').addEventListener('change', actualizar);
-            document.getElementById('filtroCategoria').addEventListener('change', actualizar);
-            document.getElementById('filtroDotacionMin').addEventListener('input', () => {
-                updateRangeLabels();
-                actualizar();
-            });
-            document.getElementById('filtroDotacionMax').addEventListener('input', () => {
-                updateRangeLabels();
-                actualizar();
-            });
-            document.getElementById('filtroEstandar').addEventListener('change', actualizar);
-        }
-
-        function updateRangeLabels() {
-            document.getElementById('dotacionMinLabel').textContent = document.getElementById('filtroDotacionMin').value;
-            document.getElementById('dotacionMaxLabel').textContent = document.getElementById('filtroDotacionMax').value;
-        }
-
-        function toggleChip(chip) {
-            chip.classList.toggle('active');
-            actualizar();
-        }
-
-        // ACTUALIZAR
-        function actualizar() {
-            aplicarFiltros();
-            renderKPIs();
-            renderGraficos();
-        }
-
-        function aplicarFiltros() {
-            const fechaDesde = document.getElementById('filtroFechaDesde').value;
-            const fechaHasta = document.getElementById('filtroFechaHasta').value;
-            const linea = document.getElementById('filtroLinea').value;
-            const categoria = document.getElementById('filtroCategoria').value;
-            const dotMin = Number(document.getElementById('filtroDotacionMin').value);
-            const dotMax = Number(document.getElementById('filtroDotacionMax').value);
-
-            datosFiltrados = datosCompletos.filter(d => {
-                const fOk = d.fecha >= fechaDesde && d.fecha <= fechaHasta;
-                const lOk = !linea || d.linea === linea;
-                const cOk = !categoria || d.articulo === categoria;
-                const pOk = d.personal >= dotMin && d.personal <= dotMax;
-                return fOk && lOk && cOk && pOk;
-            });
-
-            if (datosFiltrados.length === 0) {
-                mostrarError('⚠️ Sin datos en este filtro');
-            } else {
-                mostrarError('');
-            }
-        }
-
-        // KPIs
-        function renderKPIs() {
-            const estandar = Number(document.getElementById('filtroEstandar').value) || 40;
-
-            if (datosFiltrados.length === 0) {
-                document.getElementById('kpisContainer').innerHTML = '<div class="sin-datos">Sin datos para calcular KPIs</div>';
-                return;
-            }
-
-            const kpis = calcularKPIs(estandar);
-            const container = document.getElementById('kpisContainer');
-            container.innerHTML = '';
-
-            const kpiDefs = [
-                { key: 'totalCerdos', label: 'Cerdos procesados', formato: 'numero' },
-                { key: 'velocidadNeta', label: 'Velocidad neta', formato: 'decimal', unidad: 'cer/h' },
-                { key: 'velocidadBruta', label: 'Velocidad bruta', formato: 'decimal', unidad: 'cer/h' },
-                { key: 'cumplimiento', label: 'Cumplimiento estándar', formato: 'porcentaje', meta: '100%' },
-                { key: 'disponibilidad', label: 'Disponibilidad', formato: 'porcentaje', meta: '100%' },
-                { key: 'rendimiento', label: 'Rendimiento de cerdos', formato: 'porcentaje', meta: '>80%' },
-                { key: 'pesoPromedio', label: 'Peso promedio', formato: 'decimal', unidad: 'kg/cer' },
-                { key: 'calidadProceso', label: 'Calidad de proceso', formato: 'porcentaje', meta: '>97%' },
-                { key: 'oee', label: 'OEE', formato: 'porcentaje', meta: 'Máximo' },
-                { key: 'kilosHora', label: 'Kilos por hora', formato: 'decimal', unidad: 'kg/h' },
-                { key: 'kilohh', label: 'Kilo h/h', formato: 'decimal', unidad: 'kg/h' },
-                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'decimal', unidad: 'pers' }
-            ];
-
-            kpiDefs.forEach(def => {
-                const valor = kpis[def.key];
-                let valStr = '';
-                if (valor === null || valor === undefined) valStr = 'sin dato';
-                else if (def.formato === 'numero') valStr = formatoNumero(valor, 0);
-                else if (def.formato === 'decimal') valStr = formatoNumero(valor, 1);
-                else if (def.formato === 'porcentaje') valStr = formatoPorcentaje(valor);
-
-                const unidad = def.unidad ? ` ${def.unidad}` : '';
-                const status = obtenerStatus(def.key, valor, estandar);
-
-                const card = document.createElement('div');
-                card.className = `kpi-card status-${status}`;
-                card.innerHTML = `
-                    <div class="kpi-label">${def.label}</div>
-                    <div class="kpi-valor">${valStr}${unidad ? '<span style="font-size: 0.6em; margin-left: 0.5rem;">' + unidad + '</span>' : ''}</div>
-                    ${def.meta ? `<div class="kpi-meta">Meta: ${def.meta}</div>` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function calcularKPIs(estandar) {
-            if (datosFiltrados.length === 0) return {};
-
-            const totalCerdos = datosFiltrados.reduce((s, d) => s + d.cerdos, 0);
-            const totalHorasProd = datosFiltrados.reduce((s, d) => s + d.horasProd, 0);
-            const totalHorasProg = datosFiltrados.reduce((s, d) => s + d.horasProg, 0);
-            const totalKg = datosFiltrados.reduce((s, d) => s + d.kg, 0);
-            const totalBuenos = datosFiltrados.reduce((s, d) => s + d.buenos, 0);
-            const totalDefectos = datosFiltrados.reduce((s, d) => s + d.defectos, 0);
-            const totalPersonal = datosFiltrados.reduce((s, d) => s + d.personal * d.horasProd, 0);
-            const totalParasPlan = datosFiltrados.reduce((s, d) => s + d.parasPlan, 0);
-            const totalParasNoPlan = datosFiltrados.reduce((s, d) => s + d.parasNoPlan, 0);
-
-            const velocidadNeta = totalHorasProd > 0 ? totalCerdos / totalHorasProd : null;
-            const velocidadBruta = totalHorasProg > 0 ? totalCerdos / totalHorasProg : null;
-            const cumplimiento = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : null;
-            // Disponibilidad disminuye con paras programadas Y no planificadas
-            const disponibilidad = totalHorasProg > 0 ? Math.min(((totalHorasProg - totalParasPlan - totalParasNoPlan) / totalHorasProg) * 100, 100) : null;
-            const rendimiento = totalCerdos > 0 ? (totalBuenos / totalCerdos) * 100 : null;
-            const pesoPromedio = totalCerdos > 0 ? totalKg / totalCerdos : null;
-            const calidadProceso = totalCerdos > 0 ? ((totalCerdos - totalDefectos) / totalCerdos) * 100 : null;
-
-            const ritmo = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : 0;
-            const oee = disponibilidad && calidadProceso ?
-                (Math.min(disponibilidad, 100) / 100) * (Math.min(ritmo, 100) / 100) * (Math.min(calidadProceso, 100) / 100) * 100 : 0;
-
-            const kilosHora = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
-            const kilohh = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
-            const dotacionPromedio = totalHorasProd > 0 ? totalPersonal / totalHorasProd : null;
+        var rows = lineas.slice(1).map((line, idx) => {
+            if (!line.trim()) return null;
+            var cells = line.split(',').map(c => c.trim());
 
             return {
-                totalCerdos, velocidadNeta, velocidadBruta, cumplimiento, disponibilidad,
-                rendimiento, pesoPromedio, calidadProceso, oee, kilosHora, kilohh, dotacionPromedio
+                semana: parseInt(cells[0]) || 1,
+                fecha: cells[1] || "",
+                dia: cells[2] || "",
+                linea: cells[3] || "Desconocida",
+                articulo: cells[4] || "Sin artículo",
+                personal: parseFloat(cells[5]) || null,
+                cerdos: parseFloat(cells[6]) || 0,
+                buenos: parseFloat(cells[7]) || 0,
+                defectosProceso: parseFloat(cells[8]) || 0,
+                kgProcesado: parseFloat(cells[9]) || 0,
+                horasProductivas: parseFloat(cells[10]) || 0,
+                horasProgramadas: parseFloat(cells[11]) || 0,
+                parasNoPlanificadas: parseFloat(cells[12]) || 0,
+                parasPlanificadas: parseFloat(cells[13]) || 0,
+                motivos: cells[14] ? cells[14].split(';').map(m => m.trim()).filter(m => m) : []
             };
-        }
+        }).filter(t => t && t.cerdos > 0 && t.horasProductivas > 0);
 
-        function obtenerStatus(key, valor, estandar) {
-            if (valor === null || valor === undefined) return 'neutro';
+        if (rows.length === 0) throw new Error("No hay datos válidos");
 
-            const umbrales = {
-                cumplimiento: { bien: 90, alerta: 70 },
-                disponibilidad: { bien: 90, alerta: 70 },
-                rendimiento: { bien: 90, alerta: 80 },
-                calidadProceso: { bien: 97, alerta: 90 },
-                oee: { bien: 70, alerta: 50 },
-                velocidadNeta: { bien: estandar, alerta: estandar * 0.8 },
-            };
+        estado.turnos = rows;
+        var fechas = estado.turnos.map(t => t.fecha).sort();
+        var personales = estado.turnos.map(t => t.personal).filter(p => p);
+        var lineasSet = new Set(estado.turnos.map(t => t.linea));
+        var articulosSet = new Set(estado.turnos.map(t => t.articulo));
 
-            const umbral = umbrales[key];
-            if (!umbral) return 'bien';
+        estado.meta = {
+            fechaMinima: fechas[0],
+            fechaMaxima: fechas[fechas.length - 1],
+            personalMinimo: Math.min(...personales),
+            personalMaximo: Math.max(...personales),
+            estandarNominal: ESTANDAR_NOMINAL,
+            lineas: Array.from(lineasSet).sort(),
+            articulos: Array.from(articulosSet),
+            totalTurnos: estado.turnos.length
+        };
 
-            if (valor >= umbral.bien) return 'bien';
-            if (valor >= umbral.alerta) return 'alerta';
-            return 'mal';
-        }
+        sel("fechaInicio").value = estado.meta.fechaMinima;
+        sel("fechaFin").value = estado.meta.fechaMaxima;
+        sel("estandar").value = estado.meta.estandarNominal;
 
-        // GRÁFICOS (Placeholder - mismo código de antes)
-        function renderGraficos() {
-            if (datosFiltrados.length === 0) {
-                ['grafico1', 'grafico2', 'grafico3', 'grafico4', 'grafico5', 'grafico6', 'grafico7'].forEach(id => {
-                    document.getElementById(id).innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--c-neutro);">Sin datos para graficar</div>';
-                });
-                return;
-            }
+        ["personalMinimo", "personalMaximo"].forEach(id => {
+            sel(id).min = estado.meta.personalMinimo;
+            sel(id).max = estado.meta.personalMaximo;
+            sel(id).value = id === "personalMinimo" ? estado.meta.personalMinimo : estado.meta.personalMaximo;
+        });
 
-            const estandar = Number(document.getElementById('filtroEstandar').value) || 40;
-            grafico1_cascada(estandar);
-            grafico2_tendencia(estandar);
-            grafico3_shewhart(estandar);
-            grafico4_pareto();
-            grafico5_boxplots(estandar);
-            grafico6_scatter(estandar);
-            grafico7_heatmap(estandar);
-        }
+        var selLinea = sel("filtroLinea");
+        selLinea.innerHTML = '<option value="">Todas</option>' + estado.meta.lineas.map(l => '<option value="' + l + '">' + l + '</option>').join("");
 
-        function grafico1_cascada(estandar) {
-            const totalCerdos = datosFiltrados.reduce((s, d) => s + d.cerdos, 0);
-            const totalHorasProg = datosFiltrados.reduce((s, d) => s + d.horasProg, 0);
-            const totalParasPlan = datosFiltrados.reduce((s, d) => s + d.parasPlan, 0);
-            const totalParasNoPlan = datosFiltrados.reduce((s, d) => s + d.parasNoPlan, 0);
-            const totalDefectos = datosFiltrados.reduce((s, d) => s + d.defectos, 0);
+        var selCat = sel("filtroCategoria");
+        selCat.innerHTML = '<option value="">Todas</option>' + estado.meta.articulos.map(a => '<option value="' + a + '">' + a + '</option>').join("");
 
-            const potencial = totalHorasProg * estandar;
-            const perdidaPlan = Math.max(0, totalParasPlan * estandar);
-            const perdidaNoPlan = Math.max(0, totalParasNoPlan * estandar);
-            const perdidaRitmo = Math.max(0, potencial - perdidaPlan - perdidaNoPlan - (totalCerdos - totalDefectos));
-            const perdidaDefectos = totalDefectos;
-            const produccionBuena = totalCerdos - totalDefectos;
-
-            const trace = {
-                x: ['Potencial', 'Paradas Programadas', 'Paradas No Planificadas', 'Pérdida de Ritmo', 'Defectos', 'Producción Buena'],
-                y: [potencial, -perdidaPlan, -perdidaNoPlan, -perdidaRitmo, -perdidaDefectos, produccionBuena],
-                measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'total'],
-                type: 'waterfall',
-                text: [
-                    potencial.toFixed(0),
-                    '-' + perdidaPlan.toFixed(0),
-                    '-' + perdidaNoPlan.toFixed(0),
-                    '-' + perdidaRitmo.toFixed(0),
-                    '-' + perdidaDefectos.toFixed(0),
-                    produccionBuena.toFixed(0)
-                ],
-                textposition: 'outside',
-                increasing: { marker: { color: '#10b981' } },
-                decreasing: { marker: { color: '#ef4444' } },
-                totals: { marker: { color: '#6366f1' } }
-            };
-
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 20, t: 30, b: 60 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                yaxis: {
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)',
-                    title: 'Cerdos',
-                    titlefont: { size: 12 }
-                },
-                xaxis: { tickangle: -45 },
-                hovermode: 'x unified'
-            };
-
-            Plotly.newPlot('grafico1', [trace], layout, { responsive: true, displayModeBar: false });
-        }
-
-        function grafico2_tendencia(estandar) {
-            const semanas = {};
-            datosFiltrados.forEach(d => {
-                const fecha = new Date(d.fecha);
-                const sem = `S${Math.ceil((fecha.getDate() - fecha.getDay() + 4) / 7)}`;
-                if (!semanas[sem]) semanas[sem] = [];
-                semanas[sem].push(d);
+        var cont = sel("fichasArticulos");
+        cont.innerHTML = "";
+        estado.meta.articulos.forEach(art => {
+            var ficha = document.createElement("span");
+            ficha.className = "ficha activa";
+            ficha.textContent = art;
+            ficha.addEventListener("click", function() {
+                if (estado.articulosActivos.has(art)) {
+                    estado.articulosActivos.delete(art);
+                    ficha.classList.remove("activa");
+                } else {
+                    estado.articulosActivos.add(art);
+                    ficha.classList.add("activa");
+                }
+                actualizar();
             });
+            cont.appendChild(ficha);
+            estado.articulosActivos.add(art);
+        });
 
-            const semOrd = Object.keys(semanas).sort((a, b) => {
-                const numA = parseInt(a.substring(1));
-                const numB = parseInt(b.substring(1));
-                return numA - numB;
-            });
+        sel("subtitulo").textContent = "Período " + estado.meta.fechaMinima + " al " + estado.meta.fechaMaxima + " · " + estado.meta.totalTurnos + " turnos";
+        sel("pie").textContent = "Datos en vivo desde GitHub · Indicadores recalculados en tiempo real · Estándar nominal " + numero(ESTANDAR_NOMINAL, 0) + " cerdos/hora";
 
-            const velocidadesNetas = semOrd.map(s => {
-                const horas = semanas[s].reduce((sum, d) => sum + d.horasProd, 0);
-                const cerdos = semanas[s].reduce((sum, d) => sum + d.cerdos, 0);
-                return horas > 0 ? cerdos / horas : 0;
-            });
+        ["fechaInicio", "fechaFin", "filtroLinea", "filtroCategoria"].forEach(id => sel(id).addEventListener("change", actualizar));
+        sel("estandar").addEventListener("input", actualizar);
+        sel("personalMinimo").addEventListener("input", function() {
+            if (parseInt(this.value) > parseInt(sel("personalMaximo").value)) sel("personalMaximo").value = this.value;
+            actualizar();
+        });
+        sel("personalMaximo").addEventListener("input", function() {
+            if (parseInt(this.value) < parseInt(sel("personalMinimo").value)) sel("personalMinimo").value = this.value;
+            actualizar();
+        });
+        sel("reiniciar").addEventListener("click", function() {
+            sel("fechaInicio").value = estado.meta.fechaMinima;
+            sel("fechaFin").value = estado.meta.fechaMaxima;
+            sel("estandar").value = estado.meta.estandarNominal;
+            sel("personalMinimo").value = estado.meta.personalMinimo;
+            sel("personalMaximo").value = estado.meta.personalMaximo;
+            sel("filtroLinea").value = "";
+            sel("filtroCategoria").value = "";
+            estado.articulosActivos = new Set(estado.meta.articulos);
+            document.querySelectorAll(".ficha").forEach(f => f.classList.add("activa"));
+            actualizar();
+        });
 
-            const dotacionesPromedio = semOrd.map(s => {
-                const totalPersonal = semanas[s].reduce((sum, d) => sum + d.personal, 0);
-                return semanas[s].length > 0 ? totalPersonal / semanas[s].length : 0;
-            });
+        actualizar();
+    } catch(error) {
+        console.error("Error:", error);
+        sel("subtitulo").textContent = "Error cargando datos: " + error.message;
+    }
+}
 
-            const traceVelNeta = {
-                x: semOrd, y: velocidadesNetas, type: 'scatter', mode: 'lines+markers',
-                name: 'Velocidad Neta (cer/h)', line: { color: '#2563eb', width: 3 },
-                marker: { size: 8, symbol: 'circle' }, yaxis: 'y1'
-            };
+function initTema() {
+    var esquema = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    var guardado = localStorage.getItem("tema");
+    if (guardado) esquema = guardado;
+    document.documentElement.setAttribute("data-theme", esquema);
+    actualizarBotonTema();
+}
 
-            const traceVelBruta = {
-                x: semOrd,
-                y: semOrd.map(s => {
-                    const horas = semanas[s].reduce((sum, d) => sum + d.horasProg, 0);
-                    const cerdos = semanas[s].reduce((sum, d) => sum + d.cerdos, 0);
-                    return horas > 0 ? cerdos / horas : 0;
-                }),
-                type: 'scatter', mode: 'lines+markers',
-                name: 'Velocidad Bruta (cer/h)', line: { color: '#f59e0b', width: 3 },
-                marker: { size: 8, symbol: 'square' }, yaxis: 'y1'
-            };
+function actualizarBotonTema() {
+    var tema = document.documentElement.getAttribute("data-theme");
+    sel("toggleTema").textContent = tema === "dark" ? "☀️ Claro" : "🌙 Oscuro";
+}
 
-            const traceDotacion = {
-                x: semOrd, y: dotacionesPromedio, type: 'scatter', mode: 'lines+markers',
-                name: 'Dotación Promedio (pers)', line: { color: '#6366f1', width: 3 },
-                marker: { size: 8, symbol: 'diamond' }, yaxis: 'y2'
-            };
+sel("toggleTema").addEventListener("click", function() {
+    var actual = document.documentElement.getAttribute("data-theme");
+    var nuevo = actual === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", nuevo);
+    localStorage.setItem("tema", nuevo);
+    actualizarBotonTema();
+    if (estado.turnos.length) actualizar();
+});
 
-            const traceEstandar = {
-                x: semOrd, y: Array(semOrd.length).fill(estandar), type: 'scatter', mode: 'lines',
-                name: 'Estándar', line: { color: '#ef4444', width: 2, dash: 'dash' }, yaxis: 'y1'
-            };
+COLORES = tema();
+TIPOGRAFIA = { family: '"Public Sans", Segoe UI, Helvetica Neue, Arial, sans-serif', size: 13, color: COLORES.tinta };
+CONFIGURACION = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"] };
 
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 70, t: 30, b: 50 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                yaxis: {
-                    title: 'Velocidad (cerdos/hora)',
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)',
-                    side: 'left'
-                },
-                yaxis2: {
-                    title: 'Dotación (personas)',
-                    overlaying: 'y',
-                    side: 'right'
-                },
-                xaxis: { title: 'Semana' },
-                hovermode: 'x unified',
-                legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(0,0,0,0.05)' }
-            };
+document.addEventListener("DOMContentLoaded", function() {
+    initTema();
+    cargarDatos();
+});
 
-            Plotly.newPlot('grafico2', [traceVelNeta, traceVelBruta, traceDotacion, traceEstandar], layout, { responsive: true, displayModeBar: false });
-        }
+window.addEventListener("beforeunload", function() {
+    Plotly.purge("grafico1");
+    Plotly.purge("grafico2");
+    Plotly.purge("grafico3");
+    Plotly.purge("grafico4");
+    Plotly.purge("grafico5");
+    Plotly.purge("grafico6");
+    Plotly.purge("grafico7");
+});
+</script>
 
-        function grafico3_shewhart(estandar) {
-            const datos = datosFiltrados.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            const velNetas = datos.map(d => d.velocidadNeta);
-            const media = velNetas.reduce((s, v) => s + v, 0) / velNetas.length;
-
-            const rangos = [];
-            for (let i = 1; i < velNetas.length; i++) {
-                rangos.push(Math.abs(velNetas[i] - velNetas[i - 1]));
-            }
-            const rMedio = rangos.reduce((s, r) => s + r, 0) / rangos.length;
-            const limSup = media + 2.66 * rMedio;
-            const limInf = Math.max(0, media - 2.66 * rMedio);
-
-            const colores = velNetas.map(v => v >= limInf && v <= limSup ? '#10b981' : '#ef4444');
-
-            const tracePuntos = {
-                x: datos.map((d, i) => `${i + 1}`),
-                y: velNetas,
-                type: 'scatter',
-                mode: 'markers',
-                marker: { color: colores, size: 8, line: { color: 'rgba(255,255,255,0.5)', width: 1 } },
-                name: 'Velocidad neta',
-                text: velNetas.map(v => v.toFixed(1)),
-                hovertemplate: 'Turno: %{x}<br>Vel: %{text} cer/h<extra></extra>'
-            };
-
-            const traceMedia = {
-                x: datos.map((d, i) => `${i + 1}`),
-                y: Array(velNetas.length).fill(media),
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#6366f1', width: 2 },
-                name: 'Media',
-                hovertemplate: 'Media: ' + media.toFixed(1) + ' cer/h<extra></extra>'
-            };
-
-            const traceLimSup = {
-                x: datos.map((d, i) => `${i + 1}`),
-                y: Array(velNetas.length).fill(limSup),
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#ef4444', width: 2, dash: 'dash' },
-                name: 'Límite superior'
-            };
-
-            const traceLimInf = {
-                x: datos.map((d, i) => `${i + 1}`),
-                y: Array(velNetas.length).fill(limInf),
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#ef4444', width: 2, dash: 'dash' },
-                name: 'Límite inferior'
-            };
-
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 20, t: 30, b: 50 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                yaxis: {
-                    title: 'Velocidad neta (cer/h)',
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)'
-                },
-                xaxis: { title: 'Turno (Orden cronológico)' },
-                hovermode: 'x unified',
-                legend: { x: 0.01, y: 0.99 }
-            };
-
-            Plotly.newPlot('grafico3', [tracePuntos, traceMedia, traceLimSup, traceLimInf], layout, { responsive: true, displayModeBar: false });
-        }
-
-        function grafico4_pareto() {
-            const motivosTotales = {};
-            datosFiltrados.forEach(d => {
-                d.motivos.forEach(m => {
-                    const motivo = m.trim();
-                    if (motivo) motivosTotales[motivo] = (motivosTotales[motivo] || 0) + d.parasNoPlan;
-                });
-            });
-
-            const motivosOrd = Object.entries(motivosTotales).sort((a, b) => b[1] - a[1]).slice(0, 10);
-            const labels = motivosOrd.map(([m]) => m);
-            const valores = motivosOrd.map(([, v]) => v);
-            const total = valores.reduce((s, v) => s + v, 0);
-
-            let acumulado = 0;
-            const porcentajesAcum = valores.map(v => {
-                acumulado += v;
-                return (acumulado / total) * 100;
-            });
-
-            const colores = porcentajesAcum.map((pAcum, idx) => {
-                const acumAntes = idx === 0 ? 0 : porcentajesAcum[idx - 1];
-                return acumAntes < 80 ? '#dc2626' : '#9ca3af';
-            });
-
-            const traceBarras = {
-                x: labels,
-                y: valores,
-                type: 'bar',
-                marker: { color: colores, line: { color: 'rgba(0,0,0,0.2)', width: 0.5 } },
-                name: 'Horas de parada',
-                text: valores.map(v => v.toFixed(1)),
-                textposition: 'outside',
-                yaxis: 'y1'
-            };
-
-            const traceLinea = {
-                x: labels,
-                y: porcentajesAcum,
-                type: 'scatter',
-                mode: 'lines+markers',
-                marker: { color: '#2563eb', size: 8, line: { color: 'white', width: 1 } },
-                line: { color: '#2563eb', width: 3 },
-                name: '% Acumulado',
-                text: porcentajesAcum.map(p => p.toFixed(1) + '%'),
-                textposition: 'top center',
-                yaxis: 'y2'
-            };
-
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 70, t: 30, b: 80 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 10 },
-                yaxis: {
-                    title: 'Horas de parada',
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)'
-                },
-                yaxis2: {
-                    title: '% Acumulado',
-                    overlaying: 'y',
-                    side: 'right',
-                    range: [0, 100]
-                },
-                xaxis: { tickangle: -45 },
-                hovermode: 'x unified',
-                legend: { x: 0.01, y: 0.99 }
-            };
-
-            Plotly.newPlot('grafico4', [traceBarras, traceLinea], layout, { responsive: true, displayModeBar: false });
-        }
-
-        function grafico5_boxplots(estandar) {
-            const x = datosFiltrados.map(d => d.personal);
-            const y = datosFiltrados.map(d => d.velocidadNeta);
-            const colores = y.map(v => v >= estandar ? '#10b981' : '#ef4444');
-
-            const trace = {
-                x: x,
-                y: y,
-                type: 'scatter',
-                mode: 'markers',
-                marker: {
-                    color: colores,
-                    size: 8,
-                    opacity: 0.7,
-                    line: { color: 'rgba(255,255,255,0.5)', width: 1 }
-                },
-                text: y.map((v, i) => `Personal: ${x[i]}<br>Velocidad: ${v.toFixed(1)} cer/h`),
-                hovertemplate: '%{text}<extra></extra>',
-                name: 'Turnos'
-            };
-
-            // Línea de tendencia
-            if (datosFiltrados.length > 2) {
-                const xSorted = [...new Set(x)].sort((a, b) => a - b);
-                const yPromedio = xSorted.map(personal => {
-                    const velocidades = datosFiltrados
-                        .filter(d => d.personal === personal)
-                        .map(d => d.velocidadNeta);
-                    return velocidades.reduce((a, b) => a + b, 0) / velocidades.length;
-                });
-
-                const traceTendencia = {
-                    x: xSorted,
-                    y: yPromedio,
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    line: { color: '#2563eb', width: 3 },
-                    marker: { size: 10, color: '#2563eb', symbol: 'circle', line: { color: 'white', width: 2 } },
-                    name: 'Promedio por dotación'
-                };
-
-                const layout = {
-                    title: false,
-                    margin: { l: 70, r: 20, t: 30, b: 50 },
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                    xaxis: {
-                        title: 'Dotación (personas)',
-                        showgrid: true,
-                        gridcolor: 'rgba(0,0,0,0.1)'
-                    },
-                    yaxis: {
-                        title: 'Velocidad neta (cer/h)',
-                        showgrid: true,
-                        gridcolor: 'rgba(0,0,0,0.1)'
-                    },
-                    hovermode: 'closest',
-                    legend: { x: 0.01, y: 0.99 }
-                };
-
-                Plotly.newPlot('grafico5', [trace, traceTendencia], layout, { responsive: true, displayModeBar: false });
-            } else {
-                const layout = {
-                    title: false,
-                    margin: { l: 70, r: 20, t: 30, b: 50 },
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                    xaxis: {
-                        title: 'Dotación (personas)',
-                        showgrid: true,
-                        gridcolor: 'rgba(0,0,0,0.1)'
-                    },
-                    yaxis: {
-                        title: 'Velocidad neta (cer/h)',
-                        showgrid: true,
-                        gridcolor: 'rgba(0,0,0,0.1)'
-                    },
-                    hovermode: 'closest'
-                };
-
-                Plotly.newPlot('grafico5', [trace], layout, { responsive: true, displayModeBar: false });
-            }
-        }
-
-        function grafico6_scatter(estandar) {
-            const x = datosFiltrados.map(d => d.velocidadNeta);
-            const y = datosFiltrados.map(d => d.porcDefectos);
-            const colores = y.map(defect => defect > 3 ? '#ef4444' : '#10b981');
-
-            const traceScatter = {
-                x: x,
-                y: y,
-                type: 'scatter',
-                mode: 'markers',
-                marker: {
-                    color: colores,
-                    size: 8,
-                    opacity: 0.7,
-                    line: { color: 'rgba(255,255,255,0.5)', width: 1 }
-                },
-                text: x.map((v, i) => `Velocidad: ${v.toFixed(1)} cer/h<br>Defectos: ${y[i].toFixed(2)}%`),
-                hovertemplate: '%{text}<extra></extra>',
-                name: 'Turnos'
-            };
-
-            // Línea de límite de defectos aceptables (3%)
-            const xRange = [0, Math.max(...x) * 1.1];
-            const traceLimite = {
-                x: xRange,
-                y: [3, 3],
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#f59e0b', width: 2, dash: 'dash' },
-                name: 'Límite (3%)',
-                hovertemplate: 'Límite de defectos: 3%<extra></extra>'
-            };
-
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 20, t: 30, b: 50 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                xaxis: {
-                    title: 'Velocidad neta (cer/h)',
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)'
-                },
-                yaxis: {
-                    title: '% Defectos',
-                    showgrid: true,
-                    gridcolor: 'rgba(0,0,0,0.1)'
-                },
-                hovermode: 'closest',
-                legend: { x: 0.01, y: 0.99 }
-            };
-
-            Plotly.newPlot('grafico6', [traceScatter, traceLimite], layout, { responsive: true, displayModeBar: false });
-        }
-
-        function grafico7_heatmap(estandar) {
-            const heatmapData = {};
-            datosFiltrados.forEach(d => {
-                const fecha = new Date(d.fecha);
-                const dia = fecha.getDate();
-                const mes = fecha.getMonth() + 1;
-                const semana = Math.ceil((dia - fecha.getDay() + 4) / 7);
-                const key = `${mes}-${semana}-${dia}`;
-                if (!heatmapData[key]) heatmapData[key] = [];
-                heatmapData[key].push(d.velocidadNeta);
-            });
-
-            const semanas = new Set();
-            const dias = new Set();
-            const valoresHeatmap = [];
-
-            Object.entries(heatmapData).sort((a, b) => a[0].localeCompare(b[0])).forEach(([key, velocs]) => {
-                const [mes, sem, dia] = key.split('-');
-                semanas.add(parseInt(sem));
-                dias.add(parseInt(dia));
-                const promedio = velocs.reduce((s, v) => s + v, 0) / velocs.length;
-                valoresHeatmap.push({ semana: parseInt(sem), dia: parseInt(dia), valor: promedio });
-            });
-
-            const semanasOrd = Array.from(semanas).sort((a, b) => a - b);
-            const diasOrd = Array.from(dias).sort((a, b) => a - b);
-
-            const z = semanasOrd.map(s =>
-                diasOrd.map(d => {
-                    const item = valoresHeatmap.find(v => v.semana === s && v.dia === d);
-                    return item ? item.valor : null;
-                })
-            );
-
-            const traceHeatmap = {
-                z: z,
-                x: diasOrd.map(d => `Día ${d}`),
-                y: semanasOrd.map(s => `S${s}`),
-                type: 'heatmap',
-                colorscale: [
-                    [0, '#dc2626'],      // Rojo para bajo rendimiento
-                    [0.3, '#f59e0b'],    // Naranja para rendimiento medio-bajo
-                    [0.5, '#fbbf24'],    // Amarillo para rendimiento medio
-                    [0.7, '#a3e635'],    // Verde claro para buen rendimiento
-                    [1, '#10b981']       // Verde oscuro para excelente rendimiento
-                ],
-                zmid: estandar,
-                colorbar: {
-                    title: 'Velocidad<br>(cer/h)',
-                    thickness: 20,
-                    len: 0.7
-                },
-                hovertemplate: 'Semana: %{y}<br>Día: %{x}<br>Velocidad: %{z:.1f} cer/h<extra></extra>',
-                text: z.map((row, i) =>
-                    row.map((v, j) => v ? v.toFixed(1) : 'N/D')
-                ),
-                texttemplate: '%{text}',
-                textfont: { size: 11 }
-            };
-
-            const layout = {
-                title: false,
-                margin: { l: 70, r: 120, t: 30, b: 60 },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
-                xaxis: { title: 'Día del mes' },
-                yaxis: { title: 'Semana' }
-            };
-
-            Plotly.newPlot('grafico7', [traceHeatmap], layout, { responsive: true, displayModeBar: false });
-        }
-
-        // UTILIDADES
-        function formatoNumero(valor, decimales) {
-            if (valor === null || valor === undefined) return 'sin dato';
-            return new Intl.NumberFormat('es-EC', {
-                minimumFractionDigits: decimales, maximumFractionDigits: decimales
-            }).format(valor);
-        }
-
-        function formatoPorcentaje(valor) {
-            if (valor === null || valor === undefined) return 'sin dato';
-            return new Intl.NumberFormat('es-EC', {
-                minimumFractionDigits: 1, maximumFractionDigits: 1, style: 'percent'
-            }).format(valor / 100);
-        }
-
-        function mostrarError(mensaje) {
-            const banner = document.getElementById('errorBanner');
-            if (mensaje) {
-                banner.textContent = mensaje;
-                banner.classList.add('show');
-            } else {
-                banner.classList.remove('show');
-            }
-        }
-    </script>
 </body>
 </html>
