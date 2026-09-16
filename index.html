@@ -351,6 +351,12 @@
                     </select>
                 </div>
                 <div class="filtro-grupo">
+                    <label>Categoría</label>
+                    <select id="filtroCategoria">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
                     <label>Dotación (personal)</label>
                     <input type="range" id="filtroDotacionMin" min="1" max="50">
                     <input type="range" id="filtroDotacionMax" min="1" max="50">
@@ -363,10 +369,6 @@
                     <label>Estándar (cerdos/hora)</label>
                     <input type="number" id="filtroEstandar" value="40" min="10" max="100">
                 </div>
-            </div>
-            <div class="filtro-grupo">
-                <label>Artículos</label>
-                <div class="articulos-chips" id="articulosChips"></div>
             </div>
         </div>
 
@@ -392,7 +394,7 @@
                 <div id="grafico4" class="plotly-chart"></div>
             </div>
             <div class="grafico-container">
-                <h3>5. Dotación vs Velocidad (Box Plots)</h3>
+                <h3>5. Dotación vs Velocidad Neta</h3>
                 <div id="grafico5" class="plotly-chart"></div>
             </div>
             <div class="grafico-container">
@@ -645,21 +647,19 @@
                 selectLinea.appendChild(option);
             });
 
+            const selectCategoria = document.getElementById('filtroCategoria');
+            metadata.articulos.forEach(articulo => {
+                const option = document.createElement('option');
+                option.value = articulo;
+                option.textContent = articulo || '(sin especificar)';
+                selectCategoria.appendChild(option);
+            });
+
             document.getElementById('filtroDotacionMin').value = metadata.personalMin;
             document.getElementById('filtroDotacionMax').value = metadata.personalMax;
             document.getElementById('filtroDotacionMin').max = metadata.personalMax;
             document.getElementById('filtroDotacionMax').max = metadata.personalMax;
             updateRangeLabels();
-
-            const articulosChips = document.getElementById('articulosChips');
-            metadata.articulos.forEach(articulo => {
-                const chip = document.createElement('div');
-                chip.className = 'chip active';
-                chip.textContent = articulo || '(sin especificar)';
-                chip.dataset.articulo = articulo;
-                chip.onclick = () => toggleChip(chip);
-                articulosChips.appendChild(chip);
-            });
         }
 
         // EVENT LISTENERS
@@ -667,6 +667,7 @@
             document.getElementById('filtroFechaDesde').addEventListener('change', actualizar);
             document.getElementById('filtroFechaHasta').addEventListener('change', actualizar);
             document.getElementById('filtroLinea').addEventListener('change', actualizar);
+            document.getElementById('filtroCategoria').addEventListener('change', actualizar);
             document.getElementById('filtroDotacionMin').addEventListener('input', () => {
                 updateRangeLabels();
                 actualizar();
@@ -699,16 +700,16 @@
             const fechaDesde = document.getElementById('filtroFechaDesde').value;
             const fechaHasta = document.getElementById('filtroFechaHasta').value;
             const linea = document.getElementById('filtroLinea').value;
+            const categoria = document.getElementById('filtroCategoria').value;
             const dotMin = Number(document.getElementById('filtroDotacionMin').value);
             const dotMax = Number(document.getElementById('filtroDotacionMax').value);
-            const articulosActivos = Array.from(document.querySelectorAll('.chip.active')).map(c => c.dataset.articulo);
 
             datosFiltrados = datosCompletos.filter(d => {
                 const fOk = d.fecha >= fechaDesde && d.fecha <= fechaHasta;
                 const lOk = !linea || d.linea === linea;
+                const cOk = !categoria || d.articulo === categoria;
                 const pOk = d.personal >= dotMin && d.personal <= dotMax;
-                const aOk = articulosActivos.includes(d.articulo);
-                return fOk && lOk && pOk && aOk;
+                return fOk && lOk && cOk && pOk;
             });
 
             if (datosFiltrados.length === 0) {
@@ -778,11 +779,14 @@
             const totalBuenos = datosFiltrados.reduce((s, d) => s + d.buenos, 0);
             const totalDefectos = datosFiltrados.reduce((s, d) => s + d.defectos, 0);
             const totalPersonal = datosFiltrados.reduce((s, d) => s + d.personal * d.horasProd, 0);
+            const totalParasPlan = datosFiltrados.reduce((s, d) => s + d.parasPlan, 0);
+            const totalParasNoPlan = datosFiltrados.reduce((s, d) => s + d.parasNoPlan, 0);
 
             const velocidadNeta = totalHorasProd > 0 ? totalCerdos / totalHorasProd : null;
             const velocidadBruta = totalHorasProg > 0 ? totalCerdos / totalHorasProg : null;
             const cumplimiento = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : null;
-            const disponibilidad = totalHorasProg > 0 ? Math.min((totalHorasProd / totalHorasProg) * 100, 100) : null;
+            // Disponibilidad disminuye con paras programadas Y no planificadas
+            const disponibilidad = totalHorasProg > 0 ? Math.min(((totalHorasProg - totalParasPlan - totalParasNoPlan) / totalHorasProg) * 100, 100) : null;
             const rendimiento = totalCerdos > 0 ? (totalBuenos / totalCerdos) * 100 : null;
             const pesoPromedio = totalCerdos > 0 ? totalKg / totalCerdos : null;
             const calidadProceso = totalCerdos > 0 ? ((totalCerdos - totalDefectos) / totalCerdos) * 100 : null;
@@ -855,10 +859,19 @@
             const produccionBuena = totalCerdos - totalDefectos;
 
             const trace = {
-                x: ['Potencial', 'Paradas plan', 'Paradas no plan', 'Pérdida ritmo', 'Defectos', 'Producción buena'],
+                x: ['Potencial', 'Paradas Programadas', 'Paradas No Planificadas', 'Pérdida de Ritmo', 'Defectos', 'Producción Buena'],
                 y: [potencial, -perdidaPlan, -perdidaNoPlan, -perdidaRitmo, -perdidaDefectos, produccionBuena],
                 measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'total'],
                 type: 'waterfall',
+                text: [
+                    potencial.toFixed(0),
+                    '-' + perdidaPlan.toFixed(0),
+                    '-' + perdidaNoPlan.toFixed(0),
+                    '-' + perdidaRitmo.toFixed(0),
+                    '-' + perdidaDefectos.toFixed(0),
+                    produccionBuena.toFixed(0)
+                ],
+                textposition: 'outside',
                 increasing: { marker: { color: '#10b981' } },
                 decreasing: { marker: { color: '#ef4444' } },
                 totals: { marker: { color: '#6366f1' } }
@@ -866,11 +879,18 @@
 
             const layout = {
                 title: false,
-                margin: { l: 60, r: 20, t: 20, b: 40 },
+                margin: { l: 70, r: 20, t: 30, b: 60 },
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'var(--c-texto)', family: 'system-ui' },
-                yaxis: { showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                yaxis: {
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)',
+                    title: 'Cerdos',
+                    titlefont: { size: 12 }
+                },
+                xaxis: { tickangle: -45 },
+                hovermode: 'x unified'
             };
 
             Plotly.newPlot('grafico1', [trace], layout, { responsive: true, displayModeBar: false });
@@ -897,24 +917,63 @@
                 return horas > 0 ? cerdos / horas : 0;
             });
 
+            const dotacionesPromedio = semOrd.map(s => {
+                const totalPersonal = semanas[s].reduce((sum, d) => sum + d.personal, 0);
+                return semanas[s].length > 0 ? totalPersonal / semanas[s].length : 0;
+            });
+
             const traceVelNeta = {
                 x: semOrd, y: velocidadesNetas, type: 'scatter', mode: 'lines+markers',
-                name: 'Vel. neta', line: { color: '#2563eb', width: 3 }, marker: { size: 6 }
+                name: 'Velocidad Neta (cer/h)', line: { color: '#2563eb', width: 3 },
+                marker: { size: 8, symbol: 'circle' }, yaxis: 'y1'
+            };
+
+            const traceVelBruta = {
+                x: semOrd,
+                y: semOrd.map(s => {
+                    const horas = semanas[s].reduce((sum, d) => sum + d.horasProg, 0);
+                    const cerdos = semanas[s].reduce((sum, d) => sum + d.cerdos, 0);
+                    return horas > 0 ? cerdos / horas : 0;
+                }),
+                type: 'scatter', mode: 'lines+markers',
+                name: 'Velocidad Bruta (cer/h)', line: { color: '#f59e0b', width: 3 },
+                marker: { size: 8, symbol: 'square' }, yaxis: 'y1'
+            };
+
+            const traceDotacion = {
+                x: semOrd, y: dotacionesPromedio, type: 'scatter', mode: 'lines+markers',
+                name: 'Dotación Promedio (pers)', line: { color: '#6366f1', width: 3 },
+                marker: { size: 8, symbol: 'diamond' }, yaxis: 'y2'
             };
 
             const traceEstandar = {
                 x: semOrd, y: Array(semOrd.length).fill(estandar), type: 'scatter', mode: 'lines',
-                name: 'Estándar', line: { color: '#ef4444', width: 2 }
+                name: 'Estándar', line: { color: '#ef4444', width: 2, dash: 'dash' }, yaxis: 'y1'
             };
 
             const layout = {
-                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
-                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                hovermode: 'x unified'
+                title: false,
+                margin: { l: 70, r: 70, t: 30, b: 50 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                yaxis: {
+                    title: 'Velocidad (cerdos/hora)',
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)',
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Dotación (personas)',
+                    overlaying: 'y',
+                    side: 'right'
+                },
+                xaxis: { title: 'Semana' },
+                hovermode: 'x unified',
+                legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(0,0,0,0.05)' }
             };
 
-            Plotly.newPlot('grafico2', [traceVelNeta, traceEstandar], layout, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('grafico2', [traceVelNeta, traceVelBruta, traceDotacion, traceEstandar], layout, { responsive: true, displayModeBar: false });
         }
 
         function grafico3_shewhart(estandar) {
@@ -933,23 +992,61 @@
             const colores = velNetas.map(v => v >= limInf && v <= limSup ? '#10b981' : '#ef4444');
 
             const tracePuntos = {
-                x: datos.map((d, i) => `${i + 1}`), y: velNetas, type: 'scatter', mode: 'markers',
-                marker: { color: colores, size: 6 }, name: 'Vel. neta'
+                x: datos.map((d, i) => `${i + 1}`),
+                y: velNetas,
+                type: 'scatter',
+                mode: 'markers',
+                marker: { color: colores, size: 8, line: { color: 'rgba(255,255,255,0.5)', width: 1 } },
+                name: 'Velocidad neta',
+                text: velNetas.map(v => v.toFixed(1)),
+                hovertemplate: 'Turno: %{x}<br>Vel: %{text} cer/h<extra></extra>'
             };
 
             const traceMedia = {
-                x: datos.map((d, i) => `${i + 1}`), y: Array(velNetas.length).fill(media), type: 'scatter',
-                mode: 'lines', line: { color: '#6366f1', width: 2 }, name: 'Media'
+                x: datos.map((d, i) => `${i + 1}`),
+                y: Array(velNetas.length).fill(media),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#6366f1', width: 2 },
+                name: 'Media',
+                hovertemplate: 'Media: ' + media.toFixed(1) + ' cer/h<extra></extra>'
+            };
+
+            const traceLimSup = {
+                x: datos.map((d, i) => `${i + 1}`),
+                y: Array(velNetas.length).fill(limSup),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#ef4444', width: 2, dash: 'dash' },
+                name: 'Límite superior'
+            };
+
+            const traceLimInf = {
+                x: datos.map((d, i) => `${i + 1}`),
+                y: Array(velNetas.length).fill(limInf),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#ef4444', width: 2, dash: 'dash' },
+                name: 'Límite inferior'
             };
 
             const layout = {
-                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
-                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                hovermode: 'x unified'
+                title: false,
+                margin: { l: 70, r: 20, t: 30, b: 50 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                yaxis: {
+                    title: 'Velocidad neta (cer/h)',
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)'
+                },
+                xaxis: { title: 'Turno (Orden cronológico)' },
+                hovermode: 'x unified',
+                legend: { x: 0.01, y: 0.99 }
             };
 
-            Plotly.newPlot('grafico3', [tracePuntos, traceMedia], layout, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('grafico3', [tracePuntos, traceMedia, traceLimSup, traceLimInf], layout, { responsive: true, displayModeBar: false });
         }
 
         function grafico4_pareto() {
@@ -977,61 +1074,195 @@
                 return acumAntes < 80 ? '#dc2626' : '#9ca3af';
             });
 
-            const traceBarras = { x: labels, y: valores, type: 'bar', marker: { color: colores }, name: 'Horas' };
-            const traceLinea = { x: labels, y: porcentajesAcum, type: 'scatter', mode: 'lines+markers',
-                marker: { color: '#2563eb', size: 6 }, line: { color: '#2563eb', width: 2 }, name: '%Acum', yaxis: 'y2' };
+            const traceBarras = {
+                x: labels,
+                y: valores,
+                type: 'bar',
+                marker: { color: colores, line: { color: 'rgba(0,0,0,0.2)', width: 0.5 } },
+                name: 'Horas de parada',
+                text: valores.map(v => v.toFixed(1)),
+                textposition: 'outside',
+                yaxis: 'y1'
+            };
+
+            const traceLinea = {
+                x: labels,
+                y: porcentajesAcum,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: { color: '#2563eb', size: 8, line: { color: 'white', width: 1 } },
+                line: { color: '#2563eb', width: 3 },
+                name: '% Acumulado',
+                text: porcentajesAcum.map(p => p.toFixed(1) + '%'),
+                textposition: 'top center',
+                yaxis: 'y2'
+            };
 
             const layout = {
-                title: false, margin: { l: 60, r: 60, t: 20, b: 60 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
-                yaxis: { title: 'Horas', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                yaxis2: { title: '%Acum', overlaying: 'y', side: 'right', range: [0, 100] },
-                xaxis: { tickangle: -45 }, hovermode: 'x unified'
+                title: false,
+                margin: { l: 70, r: 70, t: 30, b: 80 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 10 },
+                yaxis: {
+                    title: 'Horas de parada',
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)'
+                },
+                yaxis2: {
+                    title: '% Acumulado',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 100]
+                },
+                xaxis: { tickangle: -45 },
+                hovermode: 'x unified',
+                legend: { x: 0.01, y: 0.99 }
             };
 
             Plotly.newPlot('grafico4', [traceBarras, traceLinea], layout, { responsive: true, displayModeBar: false });
         }
 
         function grafico5_boxplots(estandar) {
-            const porPersonas = {};
-            datosFiltrados.forEach(d => {
-                if (!porPersonas[d.personal]) porPersonas[d.personal] = [];
-                porPersonas[d.personal].push(d.velocidadNeta);
-            });
+            const x = datosFiltrados.map(d => d.personal);
+            const y = datosFiltrados.map(d => d.velocidadNeta);
+            const colores = y.map(v => v >= estandar ? '#10b981' : '#ef4444');
 
-            const traces = [];
-            Object.keys(porPersonas).map(Number).sort((a, b) => a - b)
-                .filter(p => porPersonas[p].length >= 3)
-                .forEach(p => {
-                    traces.push({ y: porPersonas[p], name: `${p} pers`, type: 'box', marker: { color: '#6366f1' } });
-                });
-
-            const layout = {
-                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
-                yaxis: { title: 'Cerdos/hora', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' }
+            const trace = {
+                x: x,
+                y: y,
+                type: 'scatter',
+                mode: 'markers',
+                marker: {
+                    color: colores,
+                    size: 8,
+                    opacity: 0.7,
+                    line: { color: 'rgba(255,255,255,0.5)', width: 1 }
+                },
+                text: y.map((v, i) => `Personal: ${x[i]}<br>Velocidad: ${v.toFixed(1)} cer/h`),
+                hovertemplate: '%{text}<extra></extra>',
+                name: 'Turnos'
             };
 
-            Plotly.newPlot('grafico5', traces, layout, { responsive: true, displayModeBar: false });
+            // Línea de tendencia
+            if (datosFiltrados.length > 2) {
+                const xSorted = [...new Set(x)].sort((a, b) => a - b);
+                const yPromedio = xSorted.map(personal => {
+                    const velocidades = datosFiltrados
+                        .filter(d => d.personal === personal)
+                        .map(d => d.velocidadNeta);
+                    return velocidades.reduce((a, b) => a + b, 0) / velocidades.length;
+                });
+
+                const traceTendencia = {
+                    x: xSorted,
+                    y: yPromedio,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#2563eb', width: 3 },
+                    marker: { size: 10, color: '#2563eb', symbol: 'circle', line: { color: 'white', width: 2 } },
+                    name: 'Promedio por dotación'
+                };
+
+                const layout = {
+                    title: false,
+                    margin: { l: 70, r: 20, t: 30, b: 50 },
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                    xaxis: {
+                        title: 'Dotación (personas)',
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    yaxis: {
+                        title: 'Velocidad neta (cer/h)',
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    hovermode: 'closest',
+                    legend: { x: 0.01, y: 0.99 }
+                };
+
+                Plotly.newPlot('grafico5', [trace, traceTendencia], layout, { responsive: true, displayModeBar: false });
+            } else {
+                const layout = {
+                    title: false,
+                    margin: { l: 70, r: 20, t: 30, b: 50 },
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                    xaxis: {
+                        title: 'Dotación (personas)',
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    yaxis: {
+                        title: 'Velocidad neta (cer/h)',
+                        showgrid: true,
+                        gridcolor: 'rgba(0,0,0,0.1)'
+                    },
+                    hovermode: 'closest'
+                };
+
+                Plotly.newPlot('grafico5', [trace], layout, { responsive: true, displayModeBar: false });
+            }
         }
 
         function grafico6_scatter(estandar) {
             const x = datosFiltrados.map(d => d.velocidadNeta);
             const y = datosFiltrados.map(d => d.porcDefectos);
-            const colores = y.map(defect => defect > 3 ? '#ef4444' : '#2563eb');
+            const colores = y.map(defect => defect > 3 ? '#ef4444' : '#10b981');
 
-            const traceScatter = { x: x, y: y, type: 'scatter', mode: 'markers',
-                marker: { color: colores, size: 6, opacity: 0.7 }, name: 'Turnos' };
-
-            const layout = {
-                title: false, margin: { l: 60, r: 20, t: 20, b: 40 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' },
-                xaxis: { title: 'Velocidad neta (cer/h)', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                yaxis: { title: '% Defectos', showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' },
-                hovermode: 'closest'
+            const traceScatter = {
+                x: x,
+                y: y,
+                type: 'scatter',
+                mode: 'markers',
+                marker: {
+                    color: colores,
+                    size: 8,
+                    opacity: 0.7,
+                    line: { color: 'rgba(255,255,255,0.5)', width: 1 }
+                },
+                text: x.map((v, i) => `Velocidad: ${v.toFixed(1)} cer/h<br>Defectos: ${y[i].toFixed(2)}%`),
+                hovertemplate: '%{text}<extra></extra>',
+                name: 'Turnos'
             };
 
-            Plotly.newPlot('grafico6', [traceScatter], layout, { responsive: true, displayModeBar: false });
+            // Línea de límite de defectos aceptables (3%)
+            const xRange = [0, Math.max(...x) * 1.1];
+            const traceLimite = {
+                x: xRange,
+                y: [3, 3],
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#f59e0b', width: 2, dash: 'dash' },
+                name: 'Límite (3%)',
+                hovertemplate: 'Límite de defectos: 3%<extra></extra>'
+            };
+
+            const layout = {
+                title: false,
+                margin: { l: 70, r: 20, t: 30, b: 50 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                xaxis: {
+                    title: 'Velocidad neta (cer/h)',
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)'
+                },
+                yaxis: {
+                    title: '% Defectos',
+                    showgrid: true,
+                    gridcolor: 'rgba(0,0,0,0.1)'
+                },
+                hovermode: 'closest',
+                legend: { x: 0.01, y: 0.99 }
+            };
+
+            Plotly.newPlot('grafico6', [traceScatter, traceLimite], layout, { responsive: true, displayModeBar: false });
         }
 
         function grafico7_heatmap(estandar) {
@@ -1069,14 +1300,39 @@
             );
 
             const traceHeatmap = {
-                z: z, x: diasOrd.map(d => `Día ${d}`), y: semanasOrd.map(s => `S${s}`),
-                type: 'heatmap', colorscale: [[0, '#dc2626'], [0.5, '#d97706'], [1, '#2563eb']],
-                zmid: estandar, colorbar: { title: 'Cer/h' }
+                z: z,
+                x: diasOrd.map(d => `Día ${d}`),
+                y: semanasOrd.map(s => `S${s}`),
+                type: 'heatmap',
+                colorscale: [
+                    [0, '#dc2626'],      // Rojo para bajo rendimiento
+                    [0.3, '#f59e0b'],    // Naranja para rendimiento medio-bajo
+                    [0.5, '#fbbf24'],    // Amarillo para rendimiento medio
+                    [0.7, '#a3e635'],    // Verde claro para buen rendimiento
+                    [1, '#10b981']       // Verde oscuro para excelente rendimiento
+                ],
+                zmid: estandar,
+                colorbar: {
+                    title: 'Velocidad<br>(cer/h)',
+                    thickness: 20,
+                    len: 0.7
+                },
+                hovertemplate: 'Semana: %{y}<br>Día: %{x}<br>Velocidad: %{z:.1f} cer/h<extra></extra>',
+                text: z.map((row, i) =>
+                    row.map((v, j) => v ? v.toFixed(1) : 'N/D')
+                ),
+                texttemplate: '%{text}',
+                textfont: { size: 11 }
             };
 
             const layout = {
-                title: false, margin: { l: 60, r: 100, t: 20, b: 60 }, plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--c-texto)', family: 'system-ui' }
+                title: false,
+                margin: { l: 70, r: 120, t: 30, b: 60 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'var(--c-texto)', family: 'system-ui', size: 11 },
+                xaxis: { title: 'Día del mes' },
+                yaxis: { title: 'Semana' }
             };
 
             Plotly.newPlot('grafico7', [traceHeatmap], layout, { responsive: true, displayModeBar: false });
