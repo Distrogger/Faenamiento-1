@@ -743,7 +743,7 @@
 
             const kpiDefs = [
                 { key: 'totalCerdos', label: 'Cerdos procesados', formato: 'numero' },
-                { key: 'velocidadNeta', label: 'Velocidad neta', formato: 'decimal', unidad: 'cer/h' },
+                { key: 'velocidadNeta', label: 'Velocidad neta', formato: 'numero', unidad: 'cer/h' },
                 { key: 'velocidadBruta', label: 'Velocidad bruta', formato: 'decimal', unidad: 'cer/h' },
                 { key: 'cumplimiento', label: 'Cumplimiento estándar', formato: 'porcentaje', meta: '100%' },
                 { key: 'disponibilidad', label: 'Disponibilidad', formato: 'porcentaje', meta: '100%' },
@@ -751,9 +751,9 @@
                 { key: 'pesoPromedio', label: 'Peso promedio', formato: 'decimal', unidad: 'kg/cer' },
                 { key: 'calidadProceso', label: 'Calidad de proceso', formato: 'porcentaje', meta: '>97%' },
                 { key: 'oee', label: 'OEE', formato: 'porcentaje', meta: 'Máximo' },
-                { key: 'kilosHora', label: 'Kilos por hora', formato: 'decimal', unidad: 'kg/h' },
-                { key: 'kilohh', label: 'Kilo h/h', formato: 'decimal', unidad: 'kg/h' },
-                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'decimal', unidad: 'pers' }
+                { key: 'kilosHora', label: 'Kilos por hora', formato: 'numero', unidad: 'kg/h' },
+                { key: 'kilohh', label: 'Kilo h/h', formato: 'numero', unidad: 'kg/pers' },
+                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'numero', unidad: 'pers' }
             ];
 
             kpiDefs.forEach(def => {
@@ -804,7 +804,7 @@
                 (Math.min(disponibilidad, 100) / 100) * (Math.min(ritmo, 100) / 100) * (Math.min(calidadProceso, 100) / 100) * 100 : 0;
 
             const kilosHora = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
-            const kilohh = totalHorasProd > 0 ? totalKg / totalHorasProd : null;
+            const kilohh = totalPersonal > 0 ? totalKg / totalPersonal : null;
             const dotacionPromedio = totalHorasProd > 0 ? totalPersonal / totalHorasProd : null;
 
             return {
