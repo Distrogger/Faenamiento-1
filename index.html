@@ -564,11 +564,12 @@
                 const horasProg = parseNumber(getField(row, 'HORAS PROGRAMADAS', 'HORAS_PROGRAMADAS', 'horas_programadas'));
                 const parasNoPlan = parseNumber(getField(row, 'HORAS DE PARAS NO PLANIFICADAS', 'HORAS_PARAS_NOPLAN', 'paras_noplan'));
                 const parasPlan = parseNumber(getField(row, 'HORAS DE PARAS PLANIFICADAS', 'HORAS_PARAS_PLAN', 'paras_plan'));
+                const porcentajeRendimiento = parseNumber(getField(row, '%RENDIMIENTO', 'RENDIMIENTO', 'rendimiento'));
                 const motivos = getField(row, 'MOTIVOS DE PARADAS', 'MOTIVOS', 'motivos').split(/[,;\/]/).filter(m => m.trim());
 
                 return {
                     fecha, linea, articulo, personal, cerdos, defectos, buenos, kg,
-                    horasProd, horasProg, parasNoPlan, parasPlan, motivos,
+                    horasProd, horasProg, parasNoPlan, parasPlan, porcentajeRendimiento, motivos,
                     velocidadNeta: horasProd > 0 ? cerdos / horasProd : 0,
                     velocidadBruta: horasProg > 0 ? cerdos / horasProg : 0,
                     porcDefectos: cerdos > 0 ? (defectos / cerdos) * 100 : 0,
@@ -747,13 +748,15 @@
                 { key: 'velocidadBruta', label: 'Velocidad bruta', formato: 'decimal', unidad: 'cer/h' },
                 { key: 'cumplimiento', label: 'Cumplimiento estándar', formato: 'porcentaje', meta: '100%' },
                 { key: 'disponibilidad', label: 'Disponibilidad', formato: 'porcentaje', meta: '100%' },
-                { key: 'rendimiento', label: 'Rendimiento de cerdos', formato: 'porcentaje', meta: '>80%' },
+                { key: 'rendimiento', label: 'Rendimiento', formato: 'porcentaje', meta: '>80%' },
                 { key: 'pesoPromedio', label: 'Peso promedio', formato: 'decimal', unidad: 'kg/cer' },
                 { key: 'calidadProceso', label: 'Calidad de proceso', formato: 'porcentaje', meta: '>97%' },
                 { key: 'oee', label: 'OEE', formato: 'porcentaje', meta: 'Máximo' },
                 { key: 'kilosHora', label: 'Kilos por hora', formato: 'numero', unidad: 'kg/h' },
                 { key: 'kilohh', label: 'Kilo h/h', formato: 'numero', unidad: 'kg/pers' },
-                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'numero', unidad: 'pers' }
+                { key: 'dotacionPromedio', label: 'Dotación promedio', formato: 'numero', unidad: 'pers' },
+                { key: 'parasPlantotal', label: 'Horas paras planificadas', formato: 'decimal', unidad: 'h' },
+                { key: 'parasNoPlantotal', label: 'Horas paras no planificadas', formato: 'decimal', unidad: 'h' }
             ];
 
             kpiDefs.forEach(def => {
@@ -788,14 +791,14 @@
             const totalBuenos = sumar(datosFiltrados, "buenos");
             const totalDefectos = sumar(datosFiltrados, "defectos");
             const totalPersonal = datosFiltrados.reduce((s, d) => s + d.personal * d.horasProd, 0);
-            const totalParasPlan = sumar(datosFiltrados, "parasPlan");
-            const totalParasNoPlan = sumar(datosFiltrados, "parasNoPlan");
+            const parasPlantotal = sumar(datosFiltrados, "parasPlan");
+            const parasNoPlantotal = sumar(datosFiltrados, "parasNoPlan");
 
             const velocidadNeta = totalHorasProd > 0 ? totalCerdos / totalHorasProd : null;
             const velocidadBruta = totalHorasProg > 0 ? totalCerdos / totalHorasProg : null;
             const cumplimiento = velocidadNeta ? Math.min((velocidadNeta / estandar) * 100, 100) : null;
-            const disponibilidad = totalHorasProg > 0 ? Math.min(((totalHorasProg - totalParasPlan - totalParasNoPlan) / totalHorasProg) * 100, 100) : null;
-            const rendimiento = totalCerdos > 0 ? (totalBuenos / totalCerdos) * 100 : null;
+            const disponibilidad = totalHorasProg > 0 ? Math.min(((totalHorasProg - parasPlantotal - parasNoPlantotal) / totalHorasProg) * 100, 100) : null;
+            const rendimiento = promedio(datosFiltrados.map(d => d.porcentajeRendimiento));
             const pesoPromedio = totalCerdos > 0 ? totalKg / totalCerdos : null;
             const calidadProceso = totalCerdos > 0 ? ((totalCerdos - totalDefectos) / totalCerdos) * 100 : null;
 
@@ -809,7 +812,8 @@
 
             return {
                 totalCerdos, velocidadNeta, velocidadBruta, cumplimiento, disponibilidad,
-                rendimiento, pesoPromedio, calidadProceso, oee, kilosHora, kilohh, dotacionPromedio
+                rendimiento, pesoPromedio, calidadProceso, oee, kilosHora, kilohh, dotacionPromedio,
+                parasPlantotal, parasNoPlantotal
             };
         }
 
